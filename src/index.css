@@ -1,13 +1,1326 @@
-body {
+/* ============================================================
+   AgriSafe Intelligence — Global Styles & CSS Variables
+   ============================================================ */
+
+:root {
+  /* Sidebar */
+  --sidebar-bg: #173404;
+  --sidebar-width: 232px;
+
+  /* Teal palette */
+  --teal: #1D9E75;
+  --teal-dark: #0F6E56;
+  --teal-light: #9FE1CB;
+  --teal-fill: #E1F5EE;
+
+  /* Green palette */
+  --green-mid: #639922;
+  --green-dark: #3B6D11;
+  --green-darker: #27500A;
+  --green-fill: #EAF3DE;
+
+  /* Amber palette */
+  --amber: #BA7517;
+  --amber-light: #EF9F27;
+  --amber-fill: #FAEEDA;
+
+  /* Red palette */
+  --red: #E24B4A;
+  --red-dark: #A32D2D;
+  --red-fill: #FCEBEB;
+
+  /* Gray palette */
+  --gray: #888780;
+  --gray-dark: #5F5E5A;
+  --gray-bg: #F1EFE8;
+
+  /* Surface */
+  --surface: #ffffff;
+  --surface-secondary: #F8F7F3;
+  --border: rgba(0, 0, 0, 0.12);
+  --border-thin: 0.5px solid rgba(0, 0, 0, 0.12);
+
+  /* Typography */
+  --font-heading: 'DM Serif Display', Georgia, serif;
+  --font-mono: 'DM Mono', 'Courier New', monospace;
+  --font-body: 'Outfit', system-ui, sans-serif;
+
+  /* Topbar */
+  --topbar-height: 56px;
+
+  /* Spacing */
+  --content-padding: 22px 26px;
+  --card-padding: 15px 17px;
+  --card-radius: 12px;
+  --gap-lg: 18px;
+  --gap-md: 12px;
+}
+
+/* Reset & Base */
+*, *::before, *::after {
+  box-sizing: border-box;
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  padding: 0;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: #2a2a28;
+  background: var(--gray-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* ============================================================
+   App Shell Layout
+   ============================================================ */
+.app-shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  height: 100vh;
+  overflow: hidden;
 }
+
+.main-column {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--gray-bg);
+}
+
+.content-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--content-padding);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-lg);
+  margin-top: var(--topbar-height);
+}
+
+/* ============================================================
+   Card Base
+   ============================================================ */
+.card {
+  background: var(--surface);
+  border: var(--border-thin);
+  border-radius: var(--card-radius);
+  padding: var(--card-padding);
+  transition: background 0.15s ease;
+}
+
+.card:hover {
+  background: #fdfcfa;
+}
+
+.card-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 10px;
+}
+
+/* ============================================================
+   Sidebar
+   ============================================================ */
+.sidebar {
+  background: var(--sidebar-bg);
+  width: var(--sidebar-width);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.sidebar-logo {
+  padding: 20px 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 0.5px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-logo-icon {
+  width: 34px;
+  height: 34px;
+  background: var(--teal);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar-logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.sidebar-logo-text .logo-agrisafe {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  color: #ffffff;
+  letter-spacing: 0.01em;
+}
+
+.sidebar-logo-text .logo-intelligence {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  color: var(--teal-light);
+  letter-spacing: 0.01em;
+}
+
+.sidebar-tagline {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 8px 16px 14px;
+}
+
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.sidebar-nav::-webkit-scrollbar { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+.nav-section-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  padding: 14px 16px 5px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 14px;
+  margin: 1px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+  color: rgba(255,255,255,0.62);
+  font-size: 13.5px;
+  font-weight: 400;
+  user-select: none;
+  text-decoration: none;
+}
+
+.nav-item:hover {
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.85);
+}
+
+.nav-item.active {
+  background: var(--teal-dark);
+  color: #ffffff;
+}
+
+.nav-item-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.nav-item.active .nav-item-icon {
+  opacity: 1;
+}
+
+.nav-badge {
+  margin-left: auto;
+  background: var(--red);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: 10px;
+  line-height: 1.5;
+}
+
+.sidebar-profile {
+  padding: 14px 16px;
+  border-top: 0.5px solid rgba(255,255,255,0.08);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.9);
+  line-height: 1.2;
+}
+
+.profile-role {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.04em;
+}
+
+/* ============================================================
+   Topbar
+   ============================================================ */
+.topbar {
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width);
+  right: 0;
+  height: var(--topbar-height);
+  background: var(--surface);
+  border-bottom: var(--border-thin);
+  display: flex;
+  align-items: center;
+  padding: 0 26px;
+  z-index: 100;
+  gap: 16px;
+}
+
+.topbar-title-group {
+  flex: 1;
+}
+
+.topbar-title {
+  font-family: var(--font-heading);
+  font-size: 17px;
+  color: #1a1a18;
+  line-height: 1.2;
+}
+
+.topbar-subtitle {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--gray);
+  letter-spacing: 0.02em;
+  margin-top: 1px;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.role-toggle {
+  display: flex;
+  background: var(--gray-bg);
+  border: var(--border-thin);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.role-toggle-btn {
+  padding: 5px 13px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--gray-dark);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.role-toggle-btn.active {
+  background: var(--surface);
+  color: #1a1a18;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.alert-pill {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--red-fill);
+  border: 1px solid rgba(226,75,74,0.3);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--red-dark);
+  white-space: nowrap;
+}
+
+.alert-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--red);
+  animation: pulse-red 1.8s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.55; transform: scale(0.8); }
+}
+
+/* ============================================================
+   Metric Cards
+   ============================================================ */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--gap-md);
+}
+
+.metric-card {
+  background: var(--surface);
+  border: var(--border-thin);
+  border-radius: var(--card-radius);
+  padding: 15px 17px 14px;
+  transition: background 0.15s ease;
+}
+
+.metric-card:hover {
+  background: #fdfcfa;
+}
+
+.metric-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 8px;
+}
+
+.metric-value {
+  font-family: var(--font-heading);
+  font-size: 36px;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.metric-delta {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--gray-dark);
+}
+
+/* ============================================================
+   Mid Row Layout
+   ============================================================ */
+.mid-row {
+  display: grid;
+  grid-template-columns: 1fr 332px;
+  gap: var(--gap-md);
+}
+
+/* ============================================================
+   MRI Chart
+   ============================================================ */
+.mri-chart-card {
+  background: var(--surface);
+  border: var(--border-thin);
+  border-radius: var(--card-radius);
+  padding: var(--card-padding);
+}
+
+.chart-header {
+  margin-bottom: 12px;
+}
+
+.chart-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+
+.chart-container {
+  height: 215px;
+  position: relative;
+}
+
+.chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: var(--border-thin);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--gray-dark);
+}
+
+.legend-swatch {
+  width: 22px;
+  height: 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legend-swatch.dashed {
+  background: repeating-linear-gradient(
+    to right,
+    rgba(226,75,74,0.55) 0,
+    rgba(226,75,74,0.55) 5px,
+    transparent 5px,
+    transparent 9px
+  );
+}
+
+/* ============================================================
+   Biosecurity Gauge
+   ============================================================ */
+.gauge-card {
+  background: var(--surface);
+  border: var(--border-thin);
+  border-radius: var(--card-radius);
+  padding: var(--card-padding);
+  width: 332px;
+}
+
+.gauge-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 6px;
+}
+
+.gauge-svg-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 4px 0 10px;
+}
+
+.gauge-status-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--teal);
+  text-align: center;
+  margin-bottom: 14px;
+  letter-spacing: 0.04em;
+}
+
+.subindex-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.subindex-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.subindex-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.subindex-name {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--gray-dark);
+}
+
+.subindex-pct {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+}
+
+.subindex-bar-track {
+  height: 5px;
+  background: var(--gray-bg);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.subindex-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+/* ============================================================
+   Bottom Row
+   ============================================================ */
+.bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap-md);
+  padding-bottom: 22px;
+}
+
+/* ============================================================
+   Risk Flags Panel
+   ============================================================ */
+.risk-flags-card {
+  background: var(--surface);
+  border: var(--border-thin);
+  border-radius: var(--card-radius);
+  padding: var(--card-padding);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.risk-flag-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: var(--surface-secondary);
+  margin-bottom: 6px;
+  transition: background 0.12s ease;
+}
+
+.risk-flag-row:last-child {
+  margin-bottom: 0;
+}
+
+.risk-flag-row:hover {
+  background: var(--gray-bg);
+}
+
+.risk-farm-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.risk-farm-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1a18;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.risk-farm-meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--gray);
+  margin-top: 1px;
+}
+
+.risk-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.risk-badge.HIGH {
+  background: var(--red-fill);
+  color: var(--red-dark);
+}
+
+.risk-badge.MED {
+  background: var(--amber-fill);
+  color: var(--amber);
+}
+
+.risk-badge.LOW {
+  background: var(--green-fill);
+  color: var(--green-dark);
+}
+
+.risk-score {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 400;
+  min-width: 30px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.risk-score.HIGH { color: var(--red); }
+.risk-score.MED  { color: var(--amber-light); }
+.risk-score.LOW  { color: var(--teal); }
+
+/* ============================================================
+   Inspection Log Panel
+   ============================================================ */
+.inspection-log-card {
+  background: var(--surface);
+  border: var(--border-thin);
+  border-radius: var(--card-radius);
+  padding: var(--card-padding);
+}
+
+.inspection-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: var(--surface-secondary);
+  margin-bottom: 6px;
+  transition: background 0.12s ease;
+}
+
+.inspection-row:last-child {
+  margin-bottom: 0;
+}
+
+.inspection-row:hover {
+  background: var(--gray-bg);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.PASS   { background: var(--teal); }
+.status-dot.REVIEW { background: var(--amber-light); }
+.status-dot.FAIL   { background: var(--red); }
+
+.insp-facility-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.insp-facility-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a1a18;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.insp-meta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--gray);
+  margin-top: 1px;
+}
+
+.status-tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 9px;
+  border-radius: 6px;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+
+.status-tag.PASS {
+  background: var(--teal-fill);
+  color: var(--teal-dark);
+}
+
+.status-tag.REVIEW {
+  background: var(--amber-fill);
+  color: var(--amber);
+}
+
+.status-tag.FAIL {
+  background: var(--red-fill);
+  color: var(--red-dark);
+}
+
+/* ============================================================
+   Inspector View
+   ============================================================ */
+.inspector-table-card {
+  background: var(--surface);
+  border: var(--border-thin);
+  border-radius: var(--card-radius);
+  padding: var(--card-padding);
+  overflow: hidden;
+}
+
+.inspector-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.inspector-table th {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray);
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: var(--border-thin);
+}
+
+.inspector-table td {
+  padding: 10px 10px;
+  border-bottom: 0.5px solid rgba(0,0,0,0.06);
+  vertical-align: middle;
+}
+
+.inspector-table tr:last-child td {
+  border-bottom: none;
+}
+
+.inspector-table tr:hover td {
+  background: var(--surface-secondary);
+}
+
+.mri-cell {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.mri-cell.red   { color: var(--red); }
+.mri-cell.amber { color: var(--amber-light); }
+.mri-cell.teal  { color: var(--teal); }
+
+.pathogen-bar-card {
+  background: var(--surface);
+  border: var(--border-thin);
+  border-radius: var(--card-radius);
+  padding: var(--card-padding);
+}
+
+.pathogen-chart-container {
+  height: 200px;
+  position: relative;
+}
+
+/* ============================================================
+   Risk Timeline
+   ============================================================ */
+.timeline-card {
+  background: var(--surface);
+  border: var(--border-thin);
+  border-radius: var(--card-radius);
+  padding: var(--card-padding);
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 14px;
+}
+
+.timeline-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.timeline-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.timeline-dot.HIGH { background: var(--red); }
+.timeline-dot.MED  { background: var(--amber-light); }
+.timeline-dot.LOW  { background: var(--teal); }
+
+.timeline-line {
+  width: 1.5px;
+  flex: 1;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+.timeline-content {
+  flex: 1;
+  padding-bottom: 18px;
+}
+
+.timeline-row-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 3px;
+}
+
+.timeline-date {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--gray);
+  letter-spacing: 0.03em;
+}
+
+.timeline-row-farm {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.timeline-farm {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #1a1a18;
+}
+
+.timeline-desc {
+  font-size: 12.5px;
+  color: var(--gray-dark);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+/* ============================================================
+   Search Input
+   ============================================================ */
+.search-input {
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  color: #1a1a18;
+  background: var(--surface-secondary);
+  border: var(--border-thin);
+  border-radius: 8px;
+  padding: 6px 11px;
+  width: 220px;
+  outline: none;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.search-input:focus {
+  background: var(--surface);
+  border-color: var(--teal);
+}
+
+/* ============================================================
+   MRI Model Config
+   ============================================================ */
+.config-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.config-field-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.config-field-header .subindex-name {
+  flex-shrink: 0;
+}
+
+.config-weight-badge {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: var(--gray);
+  background: var(--gray-bg);
+  border-radius: 5px;
+  padding: 1px 6px;
+  margin-right: auto;
+}
+
+.config-slider {
+  width: 100%;
+  height: 4px;
+  cursor: pointer;
+}
+
+.config-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: var(--border-thin);
+}
+
+.btn-primary {
+  font-family: var(--font-body);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #fff;
+  background: var(--teal);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-primary:hover {
+  background: var(--teal-dark);
+}
+
+.config-status-msg {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--teal-dark);
+}
+
+/* ============================================================
+   Risk Investigation Agent
+   ============================================================ */
+.investigate-btn {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: var(--teal-dark);
+  background: var(--teal-fill);
+  border: none;
+  border-radius: 6px;
+  padding: 3px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.12s ease;
+}
+
+.investigate-btn:hover {
+  background: var(--teal-light);
+}
+
+.investigate-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 18, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+}
+
+.investigate-modal {
+  background: var(--surface);
+  border-radius: var(--card-radius);
+  width: 100%;
+  max-width: 520px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 20px 22px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.investigate-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: var(--border-thin);
+}
+
+.investigate-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+
+.investigate-subject {
+  font-family: var(--font-heading);
+  font-size: 19px;
+  color: #1a1a18;
+  margin-top: 2px;
+}
+
+.investigate-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.investigate-close {
+  background: var(--surface-secondary);
+  border: none;
+  border-radius: 6px;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  color: var(--gray-dark);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.investigate-close:hover {
+  background: var(--gray-bg);
+}
+
+.investigate-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--gray-dark);
+  padding: 12px 0;
+}
+
+.investigate-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--teal-fill);
+  border-top-color: var(--teal);
+  animation: investigate-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes investigate-spin {
+  to { transform: rotate(360deg); }
+}
+
+.investigate-error {
+  font-size: 13px;
+  color: var(--red-dark);
+  background: var(--red-fill);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.investigate-error-hint {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--red-dark);
+  opacity: 0.8;
+  margin-top: 6px;
+}
+
+.investigate-section {
+  margin-bottom: 18px;
+}
+
+.investigate-section:last-child {
+  margin-bottom: 0;
+}
+
+.investigate-section-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray);
+  margin-bottom: 8px;
+}
+
+.investigate-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.investigate-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--surface-secondary);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.investigate-step-index {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: #fff;
+  background: var(--teal);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.investigate-step-tool {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #1a1a18;
+}
+
+.investigate-step-args {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--gray);
+  margin-top: 1px;
+}
+
+.investigate-report {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #1a1a18;
+  white-space: pre-wrap;
+}
+
+.investigate-summary-text {
+  font-size: 14px;
+  line-height: 1.55;
+  color: #1a1a18;
+}
+
+.investigate-findings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  list-style: none;
+}
+
+.investigate-finding-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--gray-dark);
+}
+
+.investigate-finding-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--teal);
+  flex-shrink: 0;
+  margin-top: 7px;
+}
+
+.investigate-recommendation {
+  background: var(--gray-bg);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #1a1a18;
+}
+
+.investigate-recommendation .investigate-section-label {
+  margin-bottom: 4px;
+}
+
+.investigate-recommendation.HIGH {
+  background: var(--red-fill);
+  color: var(--red-dark);
+}
+
+.investigate-recommendation.HIGH .investigate-section-label {
+  color: var(--red-dark);
+  opacity: 0.75;
+}
+
+.investigate-recommendation.MED {
+  background: var(--amber-fill);
+  color: var(--amber);
+}
+
+.investigate-recommendation.MED .investigate-section-label {
+  color: var(--amber);
+  opacity: 0.8;
+}
+
+.investigate-recommendation.LOW {
+  background: var(--teal-fill);
+  color: var(--teal-dark);
+}
+
+.investigate-recommendation.LOW .investigate-section-label {
+  color: var(--teal-dark);
+  opacity: 0.8;
+}
+
+/* ============================================================
+   Scrollbar
+   ============================================================ */
+.content-area::-webkit-scrollbar { width: 5px; }
+.content-area::-webkit-scrollbar-track { background: transparent; }
+.content-area::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 3px; }
+
+/* ============================================================
+   Utility
+   ============================================================ */
+.color-teal      { color: var(--teal); }
+.color-green     { color: var(--green-dark); }
+.color-green-mid { color: var(--green-mid); }
+.color-amber     { color: var(--amber-light); }
+.color-red       { color: var(--red); }

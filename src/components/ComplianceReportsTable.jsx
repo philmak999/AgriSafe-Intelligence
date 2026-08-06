@@ -1,0 +1,40 @@
+import React from 'react';
+import { complianceReports as reports } from '../data/mockData';
+
+export default function ComplianceReportsTable() {
+  return (
+    <div className="inspector-table-card">
+      <div className="panel-header">
+        <span className="card-title" style={{ marginBottom: 0 }}>Regulatory Filings</span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--gray)' }}>
+          {reports.length} reports
+        </span>
+      </div>
+
+      <table className="inspector-table">
+        <thead>
+          <tr>
+            <th>Report ID</th>
+            <th>Facility</th>
+            <th>Regulation</th>
+            <th>Period</th>
+            <th>Filed</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {reports.map((r) => (
+            <tr key={r.id}>
+              <td style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--gray)' }}>{r.id}</td>
+              <td style={{ fontWeight: 500 }}>{r.facility}</td>
+              <td style={{ color: 'var(--gray-dark)' }}>{r.regulation}</td>
+              <td style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--gray-dark)' }}>{r.period}</td>
+              <td style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--gray)' }}>{r.filed}</td>
+              <td><span className={`status-tag ${r.status}`}>{r.label}</span></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
