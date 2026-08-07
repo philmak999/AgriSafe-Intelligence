@@ -60,7 +60,7 @@ export default function BiosecurityGauge({ score = 73, statusLabel, subIndexes =
           {/* Track (gray background arc) */}
           <path
             d={arcPath(startAngleDeg, endAngleDeg, r)}
-            stroke="#E8E6DF"
+            stroke="var(--surface-secondary)"
             strokeWidth={strokeWidth}
             strokeLinecap="round"
             fill="none"
@@ -79,7 +79,7 @@ export default function BiosecurityGauge({ score = 73, statusLabel, subIndexes =
           {score > 0 && (
             <path
               d={arcPath(startAngleDeg, scoreAngleDeg, r)}
-              stroke="#1D9E75"
+              stroke="var(--teal)"
               strokeWidth={strokeWidth}
               strokeLinecap="round"
               fill="none"
@@ -94,8 +94,8 @@ export default function BiosecurityGauge({ score = 73, statusLabel, subIndexes =
                 cx={pt.x}
                 cy={pt.y}
                 r={strokeWidth / 2 + 1}
-                fill="#1D9E75"
-                stroke="#fff"
+                fill="var(--teal)"
+                stroke="var(--surface)"
                 strokeWidth="2"
               />
             );
@@ -108,7 +108,7 @@ export default function BiosecurityGauge({ score = 73, statusLabel, subIndexes =
             textAnchor="middle"
             fontFamily="'DM Serif Display', Georgia, serif"
             fontSize="40"
-            fill="#1a1a18"
+            fill="var(--text-primary)"
           >
             {score}
           </text>
@@ -118,7 +118,7 @@ export default function BiosecurityGauge({ score = 73, statusLabel, subIndexes =
             textAnchor="middle"
             fontFamily="'DM Mono', monospace"
             fontSize="10"
-            fill="#888780"
+            fill="var(--gray)"
             letterSpacing="0.08em"
           >
             OUT OF 100

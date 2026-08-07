@@ -26,7 +26,7 @@ export default function Login() {
   };
 
   return (
-    <div className="card" style={{ maxWidth: 380 }}>
+    <div className="card" style={{ width: 440, maxWidth: '100%' }}>
       <div className="card-title">Sign In</div>
       <form onSubmit={handleSubmit} className="register-form">
         <label className="register-field">

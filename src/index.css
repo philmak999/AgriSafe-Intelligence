@@ -40,6 +40,10 @@
   --border: rgba(0, 0, 0, 0.12);
   --border-thin: 0.5px solid rgba(0, 0, 0, 0.12);
 
+  /* Text */
+  --text-primary: #1a1a18;
+  --surface-hover: #fdfcfa;
+
   /* Typography */
   --font-heading: 'DM Serif Display', Georgia, serif;
   --font-mono: 'DM Mono', 'Courier New', monospace;
@@ -54,6 +58,44 @@
   --card-radius: 12px;
   --gap-lg: 18px;
   --gap-md: 12px;
+}
+
+/* Dark theme — same variable names, different values. Applied by toggling
+   data-theme on <html> (see src/ThemeContext.jsx). The sidebar stays the
+   same dark brand green in both themes, so it needs no overrides here.
+   Note: the chart.js canvases (MRIChart, Pathogen*Chart) keep their current
+   colors in dark mode — chart.js draws to canvas and doesn't pick up CSS
+   variables, so theming them is a separate, larger change. */
+:root[data-theme="dark"] {
+  --teal: #22B287;
+  --teal-dark: #6FE0B8;
+  --teal-light: #9FE1CB;
+  --teal-fill: rgba(29, 158, 117, 0.18);
+
+  --green-mid: #7FB82E;
+  --green-dark: #8FD65A;
+  --green-darker: #6FBF3A;
+  --green-fill: rgba(99, 153, 34, 0.18);
+
+  --amber: #F0B14D;
+  --amber-light: #EF9F27;
+  --amber-fill: rgba(239, 159, 39, 0.18);
+
+  --red: #E86F6E;
+  --red-dark: #FF8A85;
+  --red-fill: rgba(226, 75, 74, 0.2);
+
+  --gray: #9C9A8F;
+  --gray-dark: #D8D5C8;
+  --gray-bg: #16150F;
+
+  --surface: #1F1E17;
+  --surface-secondary: #29271D;
+  --surface-hover: #262418;
+  --border: rgba(255, 255, 255, 0.12);
+  --border-thin: 0.5px solid rgba(255, 255, 255, 0.12);
+
+  --text-primary: #EDEAE0;
 }
 
 /* Reset & Base */
@@ -71,10 +113,11 @@ html, body, #root {
 body {
   font-family: var(--font-body);
   font-size: 14px;
-  color: #2a2a28;
+  color: var(--text-primary);
   background: var(--gray-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* ============================================================
@@ -128,7 +171,7 @@ body {
 }
 
 .card:hover {
-  background: #fdfcfa;
+  background: var(--surface-hover);
 }
 
 .card-title {
@@ -321,6 +364,48 @@ body {
   text-overflow: ellipsis;
 }
 
+.theme-toggle {
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.4);
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.theme-toggle:hover {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.85);
+}
+
+.theme-toggle svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Used on the public Login/Register pages, which have no dark sidebar
+   backdrop to sit against, so it needs its own (light-mode-styled,
+   theme-aware) treatment instead of the sidebar's white-on-dark one. */
+.theme-toggle.auth-shell-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--surface);
+  border: var(--border-thin);
+  color: var(--gray-dark);
+}
+
+.theme-toggle.auth-shell-toggle:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
 .profile-logout {
   background: transparent;
   border: none;
@@ -371,7 +456,7 @@ body {
 .topbar-title {
   font-family: var(--font-heading);
   font-size: 17px;
-  color: #1a1a18;
+  color: var(--text-primary);
   line-height: 1.2;
 }
 
@@ -414,7 +499,7 @@ body {
 
 .role-toggle-btn.active {
   background: var(--surface);
-  color: #1a1a18;
+  color: var(--text-primary);
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
@@ -465,7 +550,7 @@ body {
 }
 
 .metric-card:hover {
-  background: #fdfcfa;
+  background: var(--surface-hover);
 }
 
 .metric-label {
@@ -697,7 +782,7 @@ body {
 .risk-farm-name {
   font-size: 13px;
   font-weight: 500;
-  color: #1a1a18;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -796,7 +881,7 @@ body {
 .insp-facility-name {
   font-size: 13px;
   font-weight: 500;
-  color: #1a1a18;
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -973,7 +1058,7 @@ body {
 .timeline-farm {
   font-size: 13.5px;
   font-weight: 500;
-  color: #1a1a18;
+  color: var(--text-primary);
 }
 
 .timeline-desc {
@@ -989,7 +1074,7 @@ body {
 .search-input {
   font-family: var(--font-body);
   font-size: 12.5px;
-  color: #1a1a18;
+  color: var(--text-primary);
   background: var(--surface-secondary);
   border: var(--border-thin);
   border-radius: 8px;
@@ -1144,7 +1229,7 @@ body {
 .investigate-subject {
   font-family: var(--font-heading);
   font-size: 19px;
-  color: #1a1a18;
+  color: var(--text-primary);
   margin-top: 2px;
 }
 
@@ -1263,7 +1348,7 @@ body {
 .investigate-step-tool {
   font-size: 12.5px;
   font-weight: 500;
-  color: #1a1a18;
+  color: var(--text-primary);
 }
 
 .investigate-step-args {
@@ -1276,14 +1361,14 @@ body {
 .investigate-report {
   font-size: 13.5px;
   line-height: 1.55;
-  color: #1a1a18;
+  color: var(--text-primary);
   white-space: pre-wrap;
 }
 
 .investigate-summary-text {
   font-size: 14px;
   line-height: 1.55;
-  color: #1a1a18;
+  color: var(--text-primary);
 }
 
 .investigate-findings-list {
@@ -1317,7 +1402,7 @@ body {
   padding: 12px 14px;
   font-size: 13.5px;
   line-height: 1.5;
-  color: #1a1a18;
+  color: var(--text-primary);
 }
 
 .investigate-recommendation .investigate-section-label {
@@ -1382,7 +1467,7 @@ body {
 .register-field select {
   font-family: var(--font-body);
   font-size: 13.5px;
-  color: #1a1a18;
+  color: var(--text-primary);
   background: var(--surface-secondary);
   border: var(--border-thin);
   border-radius: 8px;
@@ -1491,7 +1576,7 @@ body {
 .comparison-label {
   font-size: 13px;
   font-weight: 500;
-  color: #1a1a18;
+  color: var(--text-primary);
   margin-bottom: 10px;
 }
 

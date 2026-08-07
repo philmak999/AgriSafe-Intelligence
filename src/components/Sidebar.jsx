@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../routes';
 import { useAuth } from '../AuthContext';
+import ThemeToggle from './ThemeToggle';
 
 const SeedlingIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -182,6 +183,7 @@ export default function Sidebar() {
               {isStaff ? 'AgriSafe Scientist' : `Farmer · ${user.farmName}`}
             </span>
           </div>
+          <ThemeToggle />
           <button type="button" className="profile-logout" onClick={handleLogout} title="Sign out">
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
               <path d="M6 2H3.5A1.5 1.5 0 0 0 2 3.5v9A1.5 1.5 0 0 0 3.5 14H6" />

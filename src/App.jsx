@@ -16,6 +16,7 @@ import Automation from './pages/Automation';
 import FarmerRegister from './pages/FarmerRegister';
 import FarmerApprovals from './pages/FarmerApprovals';
 import Login from './pages/Login';
+import ThemeToggle from './components/ThemeToggle';
 
 import { ROUTES, ROUTE_META } from './routes';
 
@@ -27,6 +28,7 @@ export default function App() {
   if (PUBLIC_ROUTES.includes(location.pathname)) {
     return (
       <div className="auth-shell">
+        <ThemeToggle className="auth-shell-toggle" />
         <Routes>
           <Route path={ROUTES.login} element={<Login />} />
           <Route path={ROUTES.farmerRegister} element={<FarmerRegister />} />
