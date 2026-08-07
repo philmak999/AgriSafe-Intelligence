@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function Topbar({ title, subtitle, role, onRoleChange, showRoleToggle }) {
+export default function Topbar({ title, subtitle }) {
   return (
     <div className="topbar">
       <div className="topbar-title-group">
@@ -9,23 +9,6 @@ export default function Topbar({ title, subtitle, role, onRoleChange, showRoleTo
       </div>
 
       <div className="topbar-actions">
-        {showRoleToggle && (
-          <div className="role-toggle">
-            <button
-              className={`role-toggle-btn${role === 'producer' ? ' active' : ''}`}
-              onClick={() => onRoleChange('producer')}
-            >
-              Producer view
-            </button>
-            <button
-              className={`role-toggle-btn${role === 'inspector' ? ' active' : ''}`}
-              onClick={() => onRoleChange('inspector')}
-            >
-              Inspector view
-            </button>
-          </div>
-        )}
-
         <div className="alert-pill">
           <span className="alert-dot" />
           3 active alerts

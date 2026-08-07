@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuth } from '../AuthContext';
 
 const TOOL_LABELS = {
   get_herd_record: 'Herd registry lookup',
@@ -8,6 +9,7 @@ const TOOL_LABELS = {
 };
 
 export default function RiskInvestigationButton({ farmName }) {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -21,6 +23,7 @@ export default function RiskInvestigationButton({ farmName }) {
     try {
       const res = await fetch('/api/investigate', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ farmName }),
       });
@@ -38,6 +41,8 @@ export default function RiskInvestigationButton({ farmName }) {
 
   const report = result?.report;
   const hasStructuredReport = report && (report.summary || report.findings?.length || report.recommendation);
+
+  if (user?.role !== 'scientist') return null;
 
   return (
     <>

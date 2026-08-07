@@ -6,6 +6,10 @@ export const ROUTES = {
   complianceReports: '/compliance-reports',
   mriModel: '/mri-model',
   pathogenTrends: '/pathogen-trends',
+  automation: '/automation',
+  farmerRegister: '/register',
+  farmerApprovals: '/farmer-approvals',
+  login: '/login',
 };
 
 export const ROUTE_META = {
@@ -36,5 +40,21 @@ export const ROUTE_META = {
   [ROUTES.pathogenTrends]: {
     title: 'Pathogen trends',
     subtitle: 'Detection trends across NYS processing facilities',
+  },
+  [ROUTES.automation]: {
+    title: 'Automation log',
+    subtitle: 'Autonomous sourcing, investigation & follow-up loop',
+  },
+  [ROUTES.farmerRegister]: {
+    title: 'Register your farm',
+    subtitle: 'Create a farmer account to receive reminders & weekly reports',
+  },
+  [ROUTES.farmerApprovals]: {
+    title: 'Farmer approvals',
+    subtitle: 'Review pending registrations & ownership documentation',
+  },
+  [ROUTES.login]: {
+    title: 'Sign in',
+    subtitle: 'AgriSafe Intelligence',
   },
 };

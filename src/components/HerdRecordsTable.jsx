@@ -8,30 +8,37 @@ function mriClass(score) {
   return 'teal';
 }
 
-export default function HerdRecordsTable() {
+export default function HerdRecordsTable({ scopeFarm }) {
   const [query, setQuery] = useState('');
+
+  const scoped = scopeFarm ? herds.filter((h) => h.farm === scopeFarm) : herds;
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return herds;
-    return herds.filter((h) =>
+    if (!q) return scoped;
+    return scoped.filter((h) =>
       [h.id, h.farm, h.location, h.species].some((field) =>
         field.toLowerCase().includes(q)
       )
     );
-  }, [query]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, scopeFarm]);
 
   return (
     <div className="inspector-table-card">
       <div className="panel-header">
-        <span className="card-title" style={{ marginBottom: 0 }}>Herd Registry</span>
-        <input
-          type="text"
-          className="search-input"
-          placeholder="Search farm, location, species…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+        <span className="card-title" style={{ marginBottom: 0 }}>
+          {scopeFarm ? 'Your Herd Record' : 'Herd Registry'}
+        </span>
+        {!scopeFarm && (
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search farm, location, species…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        )}
       </div>
 
       <table className="inspector-table">

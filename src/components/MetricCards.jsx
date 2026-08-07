@@ -1,31 +1,6 @@
 import React from 'react';
-
-const producerMetrics = [
-  {
-    label: 'Avg MRI Score',
-    value: '73.2',
-    colorClass: 'color-teal',
-    delta: '↑ 2.4 pts from last week',
-  },
-  {
-    label: 'Herds Monitored',
-    value: '148',
-    colorClass: 'color-green',
-    delta: '12 Ontario · 136 NYS',
-  },
-  {
-    label: 'Inspection Pass Rate',
-    value: '91%',
-    colorClass: 'color-green-mid',
-    delta: '↑ 3% vs prior quarter',
-  },
-  {
-    label: 'High-Risk Herds',
-    value: '7',
-    colorClass: 'color-red',
-    delta: '↑ 2 flagged this week',
-  },
-];
+import { herds } from '../data/mockData';
+import { computeMriPercentile } from '../utils/percentile';
 
 const inspectorMetrics = [
   {
@@ -54,8 +29,27 @@ const inspectorMetrics = [
   },
 ];
 
-export default function MetricCards({ role }) {
-  const metrics = role === 'inspector' ? inspectorMetrics : producerMetrics;
+function riskColorClass(risk) {
+  if (risk === 'HIGH') return 'color-red';
+  if (risk === 'MED') return 'color-amber';
+  return 'color-teal';
+}
+
+function farmerMetrics(farmName) {
+  const herd = herds.find((h) => h.farm === farmName);
+  if (!herd) return [];
+  const percentile = computeMriPercentile(farmName);
+
+  return [
+    { label: 'Your MRI Score', value: String(herd.mri), colorClass: riskColorClass(herd.risk), delta: `Risk level: ${herd.risk}` },
+    { label: 'Vaccination Coverage', value: `${herd.vaccination}%`, colorClass: 'color-green-mid', delta: `${herd.headCount.toLocaleString()} head` },
+    { label: 'Last Inspection', value: herd.lastInspection, colorClass: 'color-teal', delta: `Next due ${herd.nextInspectionDue}` },
+    { label: 'Corridor Percentile', value: percentile === null ? '—' : `${percentile}th`, colorClass: 'color-green', delta: 'Biosecurity performance vs. other farms' },
+  ];
+}
+
+export default function MetricCards({ mode, farmName }) {
+  const metrics = mode === 'farmer' ? farmerMetrics(farmName) : inspectorMetrics;
 
   return (
     <div className="metric-grid">
