@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { herds } from '../data/mockData';
+import { API_BASE } from '../apiBase';
 
 const EMPTY = { username: '', password: '', name: '', email: '', farmName: '', farmId: '' };
 
@@ -12,7 +13,7 @@ export default function FarmerRegisterForm() {
   const [success, setSuccess] = useState(null);
 
   useEffect(() => {
-    fetch('/api/farmers/claimed')
+    fetch(`${API_BASE}/api/farmers/claimed`)
       .then((r) => r.json())
       .then((rows) => {
         const map = {};
@@ -41,7 +42,7 @@ export default function FarmerRegisterForm() {
     body.append('document', file);
 
     try {
-      const res = await fetch('/api/auth/register', {
+      const res = await fetch(`${API_BASE}/api/auth/register`, {
         method: 'POST',
         credentials: 'include',
         body,

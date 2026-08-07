@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import AutomationSummary from '../components/AutomationSummary';
 import AutomationRecordsTable from '../components/AutomationRecordsTable';
 import AutomationRunsList from '../components/AutomationRunsList';
+import { API_BASE } from '../apiBase';
 
 const POLL_MS = 8000;
 
@@ -14,8 +15,8 @@ export default function Automation() {
   const refresh = useCallback(async () => {
     try {
       const [recordsRes, reportRes] = await Promise.all([
-        fetch('/api/automation/records', { credentials: 'include' }),
-        fetch('/api/automation/report', { credentials: 'include' }),
+        fetch(`${API_BASE}/api/automation/records`, { credentials: 'include' }),
+        fetch(`${API_BASE}/api/automation/report`, { credentials: 'include' }),
       ]);
       if (!recordsRes.ok || !reportRes.ok) throw new Error('Failed to load automation data');
       setRecords(await recordsRes.json());
@@ -35,7 +36,7 @@ export default function Automation() {
   const runNow = async () => {
     setRunning(true);
     try {
-      await fetch('/api/automation/run-now', {
+      await fetch(`${API_BASE}/api/automation/run-now`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

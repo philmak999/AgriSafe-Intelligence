@@ -12,7 +12,8 @@ import { getRecords, getReport } from './store.js';
 import { runFarmerCycle, startFarmerLoop } from './farmerLoop.js';
 import { sendRegistrationReceivedEmail, sendApprovalEmail, sendRejectionEmail } from './notify.js';
 import { attachUser, requireAuth, requireRole, issueSession, clearSession } from './auth.js';
-import { getStaffByUsername, seedStaffAccount } from './staffStore.js';
+import { getStaffByUsername } from './staffStore.js';
+import { seedTestAccounts } from './seedTestAccounts.js';
 import { uploadOwnershipDoc } from './upload.js';
 import {
   getAllFarmers,
@@ -28,8 +29,23 @@ import {
   deleteFarmer,
 } from './farmerStore.js';
 
+// Explicit allowlist (not `origin: true`, which reflects *any* origin) —
+// this API sets an auth cookie, so only known frontends should be allowed to
+// make credentialed cross-origin requests. Comma-separated via env var so
+// the deployed GitHub Pages origin can be added without a code change.
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
 const app = express();
-app.use(cors({ origin: true, credentials: true }));
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    callback(new Error(`Origin ${origin} is not allowed`));
+  },
+  credentials: true,
+}));
 app.use(express.json());
 app.use(cookieParser());
 app.use(attachUser);
@@ -277,7 +293,7 @@ app.use((err, req, res, next) => {
 const port = process.env.PORT || 8787;
 app.listen(port, () => {
   console.log(`AgriSafe API server listening on http://localhost:${port}`);
-  seedStaffAccount();
+  seedTestAccounts().catch((err) => console.error('Failed to seed test accounts:', err));
   startAutomationLoop();
   startFarmerLoop();
 });

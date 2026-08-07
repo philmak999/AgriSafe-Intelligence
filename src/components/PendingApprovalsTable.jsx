@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE } from '../apiBase';
 
 export default function PendingApprovalsTable({ pending, onDecided }) {
   const [busyId, setBusyId] = useState(null);
@@ -6,7 +7,7 @@ export default function PendingApprovalsTable({ pending, onDecided }) {
   const approve = async (farmer) => {
     setBusyId(farmer.id);
     try {
-      const res = await fetch(`/api/farmers/${farmer.id}/approve`, { method: 'POST', credentials: 'include' });
+      const res = await fetch(`${API_BASE}/api/farmers/${farmer.id}/approve`, { method: 'POST', credentials: 'include' });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error || 'Approve failed');
@@ -24,7 +25,7 @@ export default function PendingApprovalsTable({ pending, onDecided }) {
     if (reason === null) return; // cancelled
     setBusyId(farmer.id);
     try {
-      const res = await fetch(`/api/farmers/${farmer.id}/reject`, {
+      const res = await fetch(`${API_BASE}/api/farmers/${farmer.id}/reject`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -75,7 +76,7 @@ export default function PendingApprovalsTable({ pending, onDecided }) {
                 <td>{f.farmName}</td>
                 <td style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--gray)' }}>{f.farmId}</td>
                 <td>
-                  <a href={`/api/farmers/${f.id}/document`} target="_blank" rel="noreferrer" className="doc-link">
+                  <a href={`${API_BASE}/api/farmers/${f.id}/document`} target="_blank" rel="noreferrer" className="doc-link">
                     {f.documentOriginalName || 'View document'}
                   </a>
                 </td>

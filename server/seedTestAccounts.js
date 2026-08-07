@@ -1,25 +1,22 @@
-// One-off/re-runnable script to create local test accounts.
-// Usage: node server/seedTestAccounts.js
+// Creates the two demo accounts (admin/admin, farmer/farmer) if they don't
+// already exist. Called automatically on every server boot (see index.js) so
+// they're always present even on a host with an ephemeral disk — and safe to
+// also run by hand: `node server/seedTestAccounts.js`.
 import 'dotenv/config';
+import { fileURLToPath } from 'url';
 import { getStaffByUsername, createStaffAccount } from './staffStore.js';
 import { getFarmerByUsername, createFarmer, approveFarmer } from './farmerStore.js';
 
 const TEST_FARM = { farmName: 'Seneca Valley Farms', farmId: 'NY-0455' };
 
 async function seedAdmin() {
-  if (getStaffByUsername('admin')) {
-    console.log('Staff account "admin" already exists — skipping.');
-    return;
-  }
+  if (getStaffByUsername('admin')) return;
   await createStaffAccount({ username: 'admin', password: 'admin', name: 'Admin (Test Account)' });
-  console.log('Created staff account: username="admin" password="admin" (full access).');
+  console.log('Seeded staff account: username="admin" password="admin" (full access).');
 }
 
 async function seedFarmer() {
-  if (getFarmerByUsername('farmer')) {
-    console.log('Farmer account "farmer" already exists — skipping.');
-    return;
-  }
+  if (getFarmerByUsername('farmer')) return;
   const farmer = await createFarmer({
     username: 'farmer',
     password: 'farmer',
@@ -31,8 +28,15 @@ async function seedFarmer() {
     documentOriginalName: 'test-account-no-document',
   });
   approveFarmer(farmer.id); // test account — skip the normal staff-review step
-  console.log(`Created farmer account: username="farmer" password="farmer" (linked to "${TEST_FARM.farmName}", pre-approved).`);
+  console.log(`Seeded farmer account: username="farmer" password="farmer" (linked to "${TEST_FARM.farmName}", pre-approved).`);
 }
 
-await seedAdmin();
-await seedFarmer();
+export async function seedTestAccounts() {
+  await seedAdmin();
+  await seedFarmer();
+}
+
+const isMainModule = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+if (isMainModule) {
+  await seedTestAccounts();
+}

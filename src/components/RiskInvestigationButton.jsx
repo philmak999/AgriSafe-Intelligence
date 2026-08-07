@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../AuthContext';
+import { API_BASE } from '../apiBase';
 
 const TOOL_LABELS = {
   get_herd_record: 'Herd registry lookup',
@@ -21,7 +22,7 @@ export default function RiskInvestigationButton({ farmName }) {
     setError(null);
     setResult(null);
     try {
-      const res = await fetch('/api/investigate', {
+      const res = await fetch(`${API_BASE}/api/investigate`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

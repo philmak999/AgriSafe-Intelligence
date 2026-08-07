@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import PendingApprovalsTable from '../components/PendingApprovalsTable';
 import RegisteredFarmersTable from '../components/RegisteredFarmersTable';
+import { API_BASE } from '../apiBase';
 
 export default function FarmerApprovals() {
   const [pending, setPending] = useState([]);
@@ -8,8 +9,8 @@ export default function FarmerApprovals() {
   const [running, setRunning] = useState(false);
 
   const refresh = useCallback(() => {
-    fetch('/api/farmers/pending', { credentials: 'include' }).then((r) => r.json()).then(setPending).catch(() => {});
-    fetch('/api/farmers', { credentials: 'include' }).then((r) => r.json()).then(setFarmers).catch(() => {});
+    fetch(`${API_BASE}/api/farmers/pending`, { credentials: 'include' }).then((r) => r.json()).then(setPending).catch(() => {});
+    fetch(`${API_BASE}/api/farmers`, { credentials: 'include' }).then((r) => r.json()).then(setFarmers).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -21,7 +22,7 @@ export default function FarmerApprovals() {
   const runNow = async () => {
     setRunning(true);
     try {
-      await fetch('/api/farmer-loop/run-now', {
+      await fetch(`${API_BASE}/api/farmer-loop/run-now`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { API_BASE } from './apiBase';
 
 const AuthContext = createContext(null);
 
@@ -8,7 +9,7 @@ export function AuthProvider({ children }) {
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch('/api/auth/me', { credentials: 'include' });
+      const res = await fetch(`${API_BASE}/api/auth/me`, { credentials: 'include' });
       const body = await res.json();
       setUser(body.user);
     } catch {
@@ -23,7 +24,7 @@ export function AuthProvider({ children }) {
   }, [refresh]);
 
   const login = async (username, password) => {
-    const res = await fetch('/api/auth/login', {
+    const res = await fetch(`${API_BASE}/api/auth/login`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -36,7 +37,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    await fetch(`${API_BASE}/api/auth/logout`, { method: 'POST', credentials: 'include' });
     setUser(null);
   };
 

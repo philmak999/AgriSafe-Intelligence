@@ -1,0 +1,60 @@
+# Render Blueprint — optional convenience for one-click setup via
+# "New +" → "Blueprint" in the Render dashboard, pointed at this repo.
+# Manual setup (New +  → Web Service) works exactly the same; this file
+# just documents the config so it's not tribal knowledge.
+#
+# Vars marked `sync: false` must be entered manually in the Render dashboard
+# after the service is created — they're secrets/deployment-specific values
+# that don't belong committed to the repo.
+#
+# No staff-account env vars needed: admin/admin (staff) and farmer/farmer
+# (farmer, pre-approved) are seeded automatically on every boot — see
+# server/seedTestAccounts.js. Change those credentials before this URL is
+# reachable by anyone but you.
+services:
+  - type: web
+    name: agrisafe-intelligence-api
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: NOTIFY_EMAIL_TO
+        sync: false
+      # Full URL of the deployed GitHub Pages site, e.g.
+      # https://<your-username>.github.io/AgriSafe-Intelligence
+      - key: APP_BASE_URL
+        sync: false
+      # Origin only (no path), e.g. https://<your-username>.github.io
+      - key: ALLOWED_ORIGINS
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: AUTOMATION_LOOP_INTERVAL_MS
+        value: 300000
+      - key: AUTOMATION_REVIEW_INTERVAL_MS
+        value: 43200000
+      - key: FARMER_LOOP_INTERVAL_MS
+        value: 86400000
+      - key: REMINDER_WINDOW_DAYS
+        value: 14
+      - key: REMINDER_COOLDOWN_DAYS
+        value: 3
+      - key: WEEKLY_REPORT_DAY
+        value: Monday

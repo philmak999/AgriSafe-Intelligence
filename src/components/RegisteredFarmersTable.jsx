@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { timeAgo } from '../utils/timeAgo';
+import { API_BASE } from '../apiBase';
 
 const STATUS_META = {
   active: { cls: 'PASS', label: 'Active' },
@@ -16,7 +17,7 @@ export default function RegisteredFarmersTable({ farmers, onRemoved }) {
     }
     setRemovingId(farmer.id);
     try {
-      const res = await fetch(`/api/farmers/${farmer.id}`, { method: 'DELETE', credentials: 'include' });
+      const res = await fetch(`${API_BASE}/api/farmers/${farmer.id}`, { method: 'DELETE', credentials: 'include' });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error || 'Failed to remove registration');

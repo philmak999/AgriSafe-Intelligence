@@ -8,21 +8,31 @@ if (!process.env.JWT_SECRET) {
   console.warn('JWT_SECRET is not set — using an insecure default. Set JWT_SECRET in .env before deploying anywhere real.');
 }
 
+// Local dev: frontend and API share an origin via the Vite proxy, so a plain
+// same-site cookie works. Deployed: GitHub Pages and the API live on two
+// different origins, and only a SameSite=None cookie is sent cross-site —
+// which browsers only honor when the cookie is also Secure (HTTPS-only).
+const isProduction = process.env.NODE_ENV === 'production';
+const cookieOptions = {
+  httpOnly: true,
+  sameSite: isProduction ? 'none' : 'lax',
+  secure: isProduction,
+  maxAge: SESSION_MAX_AGE_MS,
+};
+
 export function issueSession(res, user) {
   const token = jwt.sign(
     { id: user.id, role: user.role, name: user.name, farmName: user.farmName || null },
     JWT_SECRET,
     { expiresIn: '7d' }
   );
-  res.cookie(COOKIE_NAME, token, {
-    httpOnly: true,
-    sameSite: 'lax',
-    maxAge: SESSION_MAX_AGE_MS,
-  });
+  res.cookie(COOKIE_NAME, token, cookieOptions);
 }
 
 export function clearSession(res) {
-  res.clearCookie(COOKIE_NAME);
+  // clearCookie must be called with the same attributes used to set the
+  // cookie, or the browser won't recognize it as the same cookie to remove.
+  res.clearCookie(COOKIE_NAME, cookieOptions);
 }
 
 export function readSession(req) {
