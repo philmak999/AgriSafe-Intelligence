@@ -21,8 +21,6 @@ Two accounts are pre-seeded so you can see both sides of the app immediately:
 | `admin` | `admin` | AgriSafe Scientist (staff) | Everything — full corridor data, MRI Model Config, Pathogen Trends, Automation Log, Farmer Approvals |
 | `farmer` | `farmer` | Farmer | Only their own farm ("Seneca Valley Farms") — Dashboard, Risk Timeline, Herd Records, Inspection Log, Compliance Reports |
 
-If you ever wipe local data (`server/data/`), re-create both with:
-
 ```bash
 node server/seedTestAccounts.js
 ```
