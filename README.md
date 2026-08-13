@@ -10,6 +10,8 @@ cp .env.example .env      # then fill in GROQ_API_KEY and SMTP_* (see below)
 npm run dev                # runs the frontend (Vite) + API server together
 ```
 
+Website: https://philmak999.github.io/AgriSafe-Intelligence/ 
+Or locally:
 Open [http://localhost:5173](http://localhost:5173).
 
 ### Test accounts
