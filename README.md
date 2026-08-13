@@ -1,6 +1,6 @@
 # AgriSafe Intelligence
 
-Farm-to-fork biosecurity platform for the Ontario + NYS corridor — a React/Vite frontend with an Express + SQLite-free (JSON file store) backend, real authentication, an AI risk-investigation agent, and two autonomous email loops.
+Farm-to-fork agricultural biosecurity platform for farmers and agricultural researchers — a React/Vite frontend with an Express + SQLite-free (JSON file store) backend equipped with real authentication, AI risk-investigation agent with reasoning and recommendations, and autonomous email loops for risk warnings and audit report reminders.
 
 ## Quick Start
 
@@ -18,10 +18,8 @@ Two accounts are pre-seeded so you can see both sides of the app immediately:
 
 | Username | Password | Role | What you'll see |
 |---|---|---|---|
-| `admin` | `admin` | AgriSafe Scientist (staff) | Everything — full corridor data, MRI Model Config, Pathogen Trends, Automation Log, Farmer Approvals |
-| `farmer` | `farmer` | Farmer | Only their own farm ("Seneca Valley Farms") — Dashboard, Risk Timeline, Herd Records, Inspection Log, Compliance Reports |
-
-If you ever wipe local data (`server/data/`), re-create both with:
+| `admin` | `admin` | AgriSafe Scientist (staff) | Full Access: full corridor data, MRI Model Config, Pathogen Trends, Automation Log, Farmer Approvals |
+| `farmer` | `farmer` | Farmer | Registered farm (Example: Seneca Valley Farms): Dashboard, Risk Timeline, Herd Records, Inspection Log, Compliance Reports |
 
 ```bash
 node server/seedTestAccounts.js
@@ -30,7 +28,7 @@ node server/seedTestAccounts.js
 ## Features
 
 ### Core biosecurity dashboards
-- **Dashboard** — role-aware home page; scientists see corridor-wide MRI trends, biosecurity gauge, risk flags, and an inspection queue; farmers see their own MRI score, risk level, vaccination coverage, and a corridor percentile comparison
+- **Dashboard** — role-gated dashboard: scientists see corridor-wide MRI trends, biosecurity gauge, risk flags, and an inspection queue; farmers see their own farm's MRI score, risk level, vaccination coverage, and a corridor percentile comparison
 - **Risk Timeline** — chronological feed of biosecurity risk events across the corridor
 - **Herd Records** — searchable registry of every herd (species, head count, vaccination rate, MRI score, risk level)
 - **Inspection Log** — recent + full inspection history with pathogen screen results
