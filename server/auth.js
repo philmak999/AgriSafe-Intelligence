@@ -1,12 +1,18 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-only-insecure-secret-change-me';
 const COOKIE_NAME = 'agrisafe_session';
 const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
+// In production a missing secret must fail startup, not silently sign
+// tokens with a well-known default anyone could forge a session with.
+// Dev keeps a fallback so `npm run dev` works without a .env file.
+if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
+  throw new Error('JWT_SECRET must be set in production. Refusing to start with an insecure default.');
+}
 if (!process.env.JWT_SECRET) {
   console.warn('JWT_SECRET is not set — using an insecure default. Set JWT_SECRET in .env before deploying anywhere real.');
 }
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-only-insecure-secret-change-me';
 
 // Local dev: frontend and API share an origin via the Vite proxy, so a plain
 // same-site cookie works. Deployed: GitHub Pages and the API live on two

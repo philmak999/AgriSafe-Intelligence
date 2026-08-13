@@ -1,3 +1,5 @@
+import { matchPath } from 'react-router-dom';
+
 export const ROUTES = {
   dashboard: '/',
   riskTimeline: '/risk-timeline',
@@ -58,3 +60,14 @@ export const ROUTE_META = {
     subtitle: 'AgriSafe Intelligence',
   },
 };
+
+// Looks up meta by matching against the route path pattern rather than an
+// exact pathname string, so trailing slashes resolve correctly and any
+// future param route (e.g. '/herd/:id') can be added to ROUTE_META and be
+// found without special-casing the lookup.
+export function getRouteMeta(pathname) {
+  const match = Object.entries(ROUTE_META).find(([path]) =>
+    matchPath({ path, end: true }, pathname)
+  );
+  return match ? match[1] : ROUTE_META[ROUTES.dashboard];
+}

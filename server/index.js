@@ -3,6 +3,8 @@ import fs from 'fs';
 import path from 'path';
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 import bcrypt from 'bcryptjs';
 import { herds } from '../src/data/mockData.js';
@@ -39,6 +41,7 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173')
   .filter(Boolean);
 
 const app = express();
+app.use(helmet());
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
@@ -49,6 +52,18 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 app.use(attachUser);
+
+// Login and registration are the only unauthenticated write endpoints, so
+// they're the only ones a brute-force/credential-stuffing script can hammer
+// without a session. Keyed by IP; a real deploy behind a proxy needs
+// `app.set('trust proxy', ...)` for that to reflect the real client IP.
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many attempts. Try again in a few minutes.' },
+});
 
 const FRONTEND_BASE_URL = process.env.APP_BASE_URL || 'http://localhost:5173';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -64,7 +79,7 @@ function cleanupUpload(req) {
 
 // --- Auth ------------------------------------------------------------------
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', authLimiter, async (req, res) => {
   const { username, password } = req.body || {};
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password are required.' });
@@ -110,7 +125,7 @@ app.get('/api/farmers/claimed', (req, res) => {
   res.json(herds.map((h) => ({ farmName: h.farm, claimed: isFarmClaimed(h.farm) })));
 });
 
-app.post('/api/auth/register', uploadOwnershipDoc.single('document'), async (req, res) => {
+app.post('/api/auth/register', authLimiter, uploadOwnershipDoc.single('document'), async (req, res) => {
   const { username, password, name, email, farmName, farmId } = req.body || {};
 
   if (!username || !password || !name || !email || !farmName || !farmId) {

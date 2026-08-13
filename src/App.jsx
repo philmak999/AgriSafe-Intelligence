@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 
 import Sidebar from './components/Sidebar';
 import Topbar from './components/Topbar';
@@ -16,50 +16,80 @@ import Automation from './pages/Automation';
 import FarmerRegister from './pages/FarmerRegister';
 import FarmerApprovals from './pages/FarmerApprovals';
 import Login from './pages/Login';
+import NotFound from './pages/NotFound';
 import ThemeToggle from './components/ThemeToggle';
 
-import { ROUTES, ROUTE_META } from './routes';
+import { ROUTES, getRouteMeta } from './routes';
 
-const PUBLIC_ROUTES = [ROUTES.login, ROUTES.farmerRegister];
+// Unauthenticated shell: login, registration. Matching is delegated to the
+// <Route path> entries below rather than a manual pathname string check, so
+// e.g. a trailing slash on /login still resolves correctly.
+function PublicLayout() {
+  return (
+    <div className="auth-shell">
+      <ThemeToggle className="auth-shell-toggle" />
+      <Outlet />
+    </div>
+  );
+}
 
-export default function App() {
+// Authenticated shell: sidebar + topbar chrome, one RequireAuth guard for
+// every route nested under it instead of one per <Route>.
+function AuthenticatedLayout() {
   const location = useLocation();
-
-  if (PUBLIC_ROUTES.includes(location.pathname)) {
-    return (
-      <div className="auth-shell">
-        <ThemeToggle className="auth-shell-toggle" />
-        <Routes>
-          <Route path={ROUTES.login} element={<Login />} />
-          <Route path={ROUTES.farmerRegister} element={<FarmerRegister />} />
-        </Routes>
-      </div>
-    );
-  }
-
-  const meta = ROUTE_META[location.pathname] ?? ROUTE_META[ROUTES.dashboard];
+  const meta = getRouteMeta(location.pathname);
 
   return (
-    <div className="app-shell">
-      <Sidebar />
+    <RequireAuth>
+      <div className="app-shell">
+        <Sidebar />
 
-      <div className="main-column">
-        <Topbar title={meta.title} subtitle={meta.subtitle} />
+        <div className="main-column">
+          <Topbar title={meta.title} subtitle={meta.subtitle} />
 
-        <main className="content-area">
-          <Routes>
-            <Route path={ROUTES.dashboard} element={<RequireAuth><Dashboard /></RequireAuth>} />
-            <Route path={ROUTES.riskTimeline} element={<RequireAuth><RiskTimeline /></RequireAuth>} />
-            <Route path={ROUTES.herdRecords} element={<RequireAuth><HerdRecords /></RequireAuth>} />
-            <Route path={ROUTES.inspectionLog} element={<RequireAuth><InspectionLogPage /></RequireAuth>} />
-            <Route path={ROUTES.complianceReports} element={<RequireAuth><ComplianceReports /></RequireAuth>} />
-            <Route path={ROUTES.mriModel} element={<RequireAuth role="scientist"><MRIModelConfig /></RequireAuth>} />
-            <Route path={ROUTES.pathogenTrends} element={<RequireAuth role="scientist"><PathogenTrends /></RequireAuth>} />
-            <Route path={ROUTES.automation} element={<RequireAuth role="scientist"><Automation /></RequireAuth>} />
-            <Route path={ROUTES.farmerApprovals} element={<RequireAuth role="scientist"><FarmerApprovals /></RequireAuth>} />
-          </Routes>
-        </main>
+          <main className="content-area">
+            <Outlet />
+          </main>
+        </div>
       </div>
-    </div>
+    </RequireAuth>
+  );
+}
+
+// Nested under AuthenticatedLayout: adds the scientist-only check for the
+// subset of routes that need it, without repeating the auth check itself.
+function ScientistLayout() {
+  return (
+    <RequireAuth role="scientist">
+      <Outlet />
+    </RequireAuth>
+  );
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route element={<PublicLayout />}>
+        <Route path={ROUTES.login} element={<Login />} />
+        <Route path={ROUTES.farmerRegister} element={<FarmerRegister />} />
+      </Route>
+
+      <Route element={<AuthenticatedLayout />}>
+        <Route path={ROUTES.dashboard} element={<Dashboard />} />
+        <Route path={ROUTES.riskTimeline} element={<RiskTimeline />} />
+        <Route path={ROUTES.herdRecords} element={<HerdRecords />} />
+        <Route path={ROUTES.inspectionLog} element={<InspectionLogPage />} />
+        <Route path={ROUTES.complianceReports} element={<ComplianceReports />} />
+
+        <Route element={<ScientistLayout />}>
+          <Route path={ROUTES.mriModel} element={<MRIModelConfig />} />
+          <Route path={ROUTES.pathogenTrends} element={<PathogenTrends />} />
+          <Route path={ROUTES.automation} element={<Automation />} />
+          <Route path={ROUTES.farmerApprovals} element={<FarmerApprovals />} />
+        </Route>
+      </Route>
+
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 }
