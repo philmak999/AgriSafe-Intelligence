@@ -13,12 +13,8 @@ let running = false;
 // source of truth is the same mock risk data the dashboard renders.
 function sourceCandidates() {
   return riskFlags
-    .filter((f) => f.risk === 'HIGH' || f.risk === 'MED')
-    .map((f) => ({
-      farmName: f.farm,
-      riskLevel: f.risk,
-      sourceReason: `Active risk flag — score ${f.score} (${f.risk})`,
-    }));
+    .filter((f) => f.riskLevel === 'HIGH' || f.riskLevel === 'MED')
+    .map ((f) => ({farmName: f.farmName, riskLevel: f.riskLevel, sourceReason: `Risk Flag Detected: Score ${f.score} (${f.riskLevel})`}));
 }
 
 function needsReview(existing) {
