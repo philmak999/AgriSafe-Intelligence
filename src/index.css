@@ -197,6 +197,15 @@ body {
   flex-shrink: 0;
 }
 
+/* Only ever rendered (see Sidebar.jsx) while the drawer is open, which only
+   happens below the sidebar-drawer breakpoint — no media query needed here. */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 150;
+}
+
 .sidebar-logo {
   padding: 20px 16px 18px;
   display: flex;
@@ -449,8 +458,41 @@ body {
   gap: 16px;
 }
 
+/* Hidden above the sidebar-drawer breakpoint, where the sidebar is always
+   docked and there's nothing for it to toggle. */
+.topbar-menu-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.topbar-menu-btn svg {
+  width: 17px;
+  height: 17px;
+}
+
+.topbar-menu-btn:hover {
+  background: var(--surface-secondary);
+}
+
 .topbar-title-group {
   flex: 1;
+  min-width: 0;
+}
+
+.topbar-title,
+.topbar-subtitle {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .topbar-title {
@@ -673,6 +715,11 @@ body {
   display: flex;
   justify-content: center;
   margin: 4px 0 10px;
+}
+
+.gauge-svg-wrap svg {
+  max-width: 100%;
+  height: auto;
 }
 
 .gauge-status-label {
@@ -927,11 +974,12 @@ body {
   border: var(--border-thin);
   border-radius: var(--card-radius);
   padding: var(--card-padding);
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 .inspector-table {
   width: 100%;
+  min-width: 560px;
   border-collapse: collapse;
   font-size: 13px;
 }
@@ -1080,6 +1128,7 @@ body {
   border-radius: 8px;
   padding: 6px 11px;
   width: 220px;
+  max-width: 100%;
   outline: none;
   transition: border-color 0.12s ease, background 0.12s ease;
 }
@@ -1612,3 +1661,98 @@ body {
 .color-green-mid { color: var(--green-mid); }
 .color-amber     { color: var(--amber-light); }
 .color-red       { color: var(--red); }
+
+/* ============================================================
+   Responsive — tablet
+   Sidebar becomes a slide-in drawer instead of a docked column, and the
+   two-column layouts (metric cards, mid/bottom rows) collapse to fewer
+   columns so nothing gets squeezed below a usable width.
+   ============================================================ */
+@media (max-width: 1024px) {
+  .app-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25);
+  }
+
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  .topbar {
+    left: 0;
+  }
+
+  .topbar-menu-btn {
+    display: flex;
+  }
+
+  .metric-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .mid-row,
+  .bottom-row {
+    grid-template-columns: 1fr;
+  }
+
+  .gauge-card {
+    width: 100%;
+  }
+}
+
+/* ============================================================
+   Responsive — mobile
+   Tighter spacing throughout, single-column metric cards, and layout
+   fixes for rows (panel headers, config actions) that assumed desktop
+   width when built.
+   ============================================================ */
+@media (max-width: 640px) {
+  :root {
+    --content-padding: 14px 12px;
+    --card-padding: 13px 14px;
+  }
+
+  .topbar {
+    padding: 0 14px;
+    gap: 10px;
+  }
+
+  .topbar-title {
+    font-size: 15.5px;
+  }
+
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+
+  .config-actions {
+    flex-wrap: wrap;
+  }
+
+  .investigate-overlay {
+    padding: 12px;
+  }
+
+  .investigate-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}

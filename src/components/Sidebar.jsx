@@ -123,7 +123,7 @@ function initials(name) {
   return name.trim().charAt(0).toUpperCase();
 }
 
-export default function Sidebar() {
+export default function Sidebar({ open, onClose }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const isStaff = user?.role === 'scientist';
@@ -134,7 +134,13 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="sidebar">
+    <>
+      {/* Below the drawer breakpoint the sidebar becomes an overlay; this
+          backdrop closes it on outside click. Inert (and unrendered) above
+          that breakpoint, where the sidebar is always docked. */}
+      {open && <div className="sidebar-overlay" onClick={onClose} />}
+
+      <aside className={`sidebar${open ? ' sidebar-open' : ''}`}>
       {/* Logo */}
       <div className="sidebar-logo">
         <div className="sidebar-logo-icon">
@@ -193,6 +199,7 @@ export default function Sidebar() {
           </button>
         </div>
       )}
-    </aside>
+      </aside>
+    </>
   );
 }

@@ -11,13 +11,13 @@ let running = false;
 // "Sourcing" — scan the app's own risk data for anything that needs attention.
 // In production this is where a real external feed would plug in; for now the
 // source of truth is the same mock risk data the dashboard renders.
-function sourceCandidates() {
+export function sourceCandidates() {
   return riskFlags
-    .filter((f) => f.riskLevel === 'HIGH' || f.riskLevel === 'MED')
-    .map ((f) => ({farmName: f.farmName, riskLevel: f.riskLevel, sourceReason: `Risk Flag Detected: Score ${f.score} (${f.riskLevel})`}));
+    .filter((f) => f.risk === 'HIGH' || f.risk === 'MED')
+    .map((f) => ({ farmName: f.farm, riskLevel: f.risk, sourceReason: `Risk Flag Detected: Score ${f.score} (${f.risk})` }));
 }
 
-function needsReview(existing) {
+export function needsReview(existing) {
   if (!existing) return true;
   if (!existing.lastReviewedAt) return true;
   return Date.now() - new Date(existing.lastReviewedAt).getTime() > REVIEW_INTERVAL_MS;

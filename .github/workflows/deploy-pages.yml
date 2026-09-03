@@ -27,6 +27,12 @@ jobs:
 
       - run: npm ci
 
+      # Same checks as ci.yml — run again here so a broken main (e.g. a
+      # merge that skipped CI, or a direct push) can never reach production
+      # even though this workflow lives in its own file.
+      - run: npm run lint
+      - run: npm run test:run
+
       # Baked into the built JS at compile time — must point at the deployed
       # backend (see render.yaml) since GitHub Pages can't run the API itself.
       # Set this in: repo Settings → Secrets and variables → Actions → Variables
@@ -49,3 +55,24 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+      # Render deploys the API on its own (triggered by the same push to
+      # main) and isn't controlled by this workflow, so this can't gate the
+      # Pages deploy above — it just surfaces loudly in the Actions tab if
+      # the backend didn't come back up healthy, instead of a farmer being
+      # the first to notice. Requires the "API_BASE_URL" repo variable
+      # (Settings → Secrets and variables → Actions → Variables) pointing at
+      # the Render service, e.g. https://agrisafe-intelligence-api.onrender.com
+      - name: Check backend health
+        if: vars.API_BASE_URL != ''
+        run: |
+          echo "Waiting for Render deploy to finish rolling out..."
+          for i in $(seq 1 10); do
+            if curl -sf "${{ vars.API_BASE_URL }}/api/health"; then
+              echo "Backend is healthy."
+              exit 0
+            fi
+            sleep 15
+          done
+          echo "::error::Backend health check failed after deploy — ${{ vars.API_BASE_URL }}/api/health did not respond OK."
+          exit 1

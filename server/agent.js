@@ -34,7 +34,7 @@ One concrete next action (e.g. schedule inspection, notify producer, escalate to
 
 Be factual and only reference data returned by the tools. Do not fabricate records. Keep the whole report under 180 words.`;
 
-function parseReport(text) {
+export function parseReport(text) {
   const clean = (text || '').replace(/\*\*/g, '').trim();
 
   const summaryMatch = clean.match(/SUMMARY:\s*([\s\S]*?)(?=\n\s*FINDINGS:|\n\s*RECOMMENDATION:|$)/i);
@@ -58,7 +58,7 @@ function parseReport(text) {
   return { summary, findings, recommendation };
 }
 
-function deriveRiskLevel(steps) {
+export function deriveRiskLevel(steps) {
   const herdStep = steps.find((s) => s.tool === 'get_herd_record' && s.result?.risk);
   return herdStep ? herdStep.result.risk : null;
 }

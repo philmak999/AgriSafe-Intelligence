@@ -77,6 +77,13 @@ function cleanupUpload(req) {
   if (req.file?.path) fs.unlink(req.file.path, () => {});
 }
 
+// Unauthenticated liveness probe — used by Render's health checks and by the
+// post-deploy check in the CI workflow. Deliberately reveals nothing about
+// app state beyond "the process is up".
+app.get('/api/health', (_req, res) => {
+  res.json({ ok: true, uptime: process.uptime() });
+});
+
 // --- Auth ------------------------------------------------------------------
 
 app.post('/api/auth/login', authLimiter, async (req, res) => {

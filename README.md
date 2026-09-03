@@ -79,7 +79,19 @@ Everything else (loop intervals, reminder windows, seed account credentials) has
 | `npm run dev:api` | API server only (auto-restarts on file changes) |
 | `npm run build` | Builds the frontend for production to `dist/` |
 | `npm run preview` | Serves the production build locally |
+| `npm run lint` | ESLint over `src/` and `server/` |
+| `npm run test` | Runs the Vitest suite in watch mode |
+| `npm run test:run` | Runs the Vitest suite once (used in CI) |
 | `node server/seedTestAccounts.js` | (Re-)creates the `admin`/`admin` and `farmer`/`farmer` test accounts |
+
+## CI/CD
+
+- **[ci.yml](.github/workflows/ci.yml)** — runs on every pull request and every push to a non-`main` branch: `npm ci` → lint → test → build. Nothing merges into `main` without passing this (enforce with a branch protection rule requiring the `build` check).
+- **[deploy-pages.yml](.github/workflows/deploy-pages.yml)** — runs on push to `main`: repeats lint/test/build as a self-contained gate, publishes `dist/` to GitHub Pages, then does a best-effort health check against the deployed backend (`API_BASE_URL` repo variable + `/api/health`) so a broken deploy shows up in the Actions tab instead of a support email.
+- **Backend** — deployed by Render via its own git integration, using [render.yaml](render.yaml) as the source of truth. Render also polls `/api/health` itself for zero-downtime rollouts.
+- **[dependabot.yml](.github/dependabot.yml)** — weekly PRs for outdated/vulnerable npm and GitHub Actions dependencies.
+
+Repo variables to set (Settings → Secrets and variables → Actions → Variables): `VITE_API_BASE_URL` (required, used by the frontend build) and `API_BASE_URL` (optional, same value without the `VITE_` prefix, enables the post-deploy health check).
 
 ## Structure
 

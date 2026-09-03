@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Routes, Route, Outlet, useLocation } from 'react-router-dom';
 
 import Sidebar from './components/Sidebar';
@@ -38,14 +38,21 @@ function PublicLayout() {
 function AuthenticatedLayout() {
   const location = useLocation();
   const meta = getRouteMeta(location.pathname);
+  const [navOpen, setNavOpen] = useState(false);
+
+  // Below the sidebar-drawer breakpoint the nav is an overlay; close it on
+  // every navigation so it doesn't stay open over the next page.
+  useEffect(() => {
+    setNavOpen(false);
+  }, [location.pathname]);
 
   return (
     <RequireAuth>
       <div className="app-shell">
-        <Sidebar />
+        <Sidebar open={navOpen} onClose={() => setNavOpen(false)} />
 
         <div className="main-column">
-          <Topbar title={meta.title} subtitle={meta.subtitle} />
+          <Topbar title={meta.title} subtitle={meta.subtitle} onMenuClick={() => setNavOpen((open) => !open)} />
 
           <main className="content-area">
             <Outlet />
