@@ -17,6 +17,26 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: agrisafe
+          POSTGRES_PASSWORD: agrisafe
+          POSTGRES_DB: agrisafe
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U agrisafe"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://agrisafe:agrisafe@localhost:5432/agrisafe
+      DATABASE_SSL: 'false'
+
     steps:
       - uses: actions/checkout@v4
 
@@ -31,6 +51,7 @@ jobs:
       # merge that skipped CI, or a direct push) can never reach production
       # even though this workflow lives in its own file.
       - run: npm run lint
+      - run: npm run db:migrate
       - run: npm run test:run
 
       # Baked into the built JS at compile time — must point at the deployed

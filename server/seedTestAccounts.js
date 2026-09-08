@@ -10,13 +10,13 @@ import { getFarmerByUsername, createFarmer, approveFarmer } from './farmerStore.
 const TEST_FARM = { farmName: 'Seneca Valley Farms', farmId: 'NY-0455' };
 
 async function seedAdmin() {
-  if (getStaffByUsername('admin')) return;
+  if (await getStaffByUsername('admin')) return;
   await createStaffAccount({ username: 'admin', password: 'admin', name: 'Admin (Test Account)' });
   console.log('Seeded staff account: username="admin" password="admin" (full access).');
 }
 
 async function seedFarmer() {
-  if (getFarmerByUsername('farmer')) return;
+  if (await getFarmerByUsername('farmer')) return;
   const farmer = await createFarmer({
     username: 'farmer',
     password: 'farmer',
@@ -27,7 +27,7 @@ async function seedFarmer() {
     documentPath: null,
     documentOriginalName: 'test-account-no-document',
   });
-  approveFarmer(farmer.id); // test account — skip the normal staff-review step
+  await approveFarmer(farmer.id); // test account — skip the normal staff-review step
   console.log(`Seeded farmer account: username="farmer" password="farmer" (linked to "${TEST_FARM.farmName}", pre-approved).`);
 }
 

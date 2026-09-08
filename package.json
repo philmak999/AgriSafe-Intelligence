@@ -10,11 +10,16 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "node server/index.js",
+    "prestart": "node server/db/migrate.js",
     "lint": "eslint .",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:migrate": "node server/db/migrate.js"
   },
   "dependencies": {
+    "@google-cloud/storage": "^8.0.1",
     "bcryptjs": "^3.0.3",
     "chart.js": "^4.5.1",
     "cookie-parser": "^1.4.7",
@@ -27,6 +32,7 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.2.0",
     "nodemailer": "^9.0.4",
+    "pg": "^8.23.0",
     "react": "^19.2.4",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^19.2.4",

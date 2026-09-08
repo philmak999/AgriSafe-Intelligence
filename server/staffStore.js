@@ -1,41 +1,33 @@
-import fs from 'fs';
-import path from 'path';
 import bcrypt from 'bcryptjs';
-import { fileURLToPath } from 'url';
+import { pool } from './db/pool.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const STORE_PATH = path.join(__dirname, 'data', 'staff.json');
-
-function load() {
-  try {
-    return JSON.parse(fs.readFileSync(STORE_PATH, 'utf-8'));
-  } catch {
-    return { staff: [] };
-  }
+function toStaff(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    username: row.username,
+    passwordHash: row.password_hash,
+    name: row.name,
+    role: row.role,
+    createdAt: row.created_at,
+  };
 }
 
-function save(state) {
-  fs.mkdirSync(path.dirname(STORE_PATH), { recursive: true });
-  fs.writeFileSync(STORE_PATH, JSON.stringify(state, null, 2));
-}
-
-let state = load();
-
-export function getStaffByUsername(username) {
-  return state.staff.find((s) => s.username.toLowerCase() === username.toLowerCase()) || null;
+export async function getStaffByUsername(username) {
+  const { rows } = await pool.query('SELECT * FROM staff WHERE LOWER(username) = LOWER($1)', [username]);
+  return toStaff(rows[0]);
 }
 
 export async function createStaffAccount({ username, password, name }) {
   const passwordHash = await bcrypt.hash(password, 10);
-  const staff = {
-    id: `staff_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    username,
-    passwordHash,
-    name,
-    role: 'scientist',
-    createdAt: new Date().toISOString(),
-  };
-  state.staff.push(staff);
-  save(state);
-  return staff;
+  const id = `staff_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+  const { rows } = await pool.query(
+    `INSERT INTO staff (id, username, password_hash, name)
+     VALUES ($1, $2, $3, $4)
+     RETURNING *`,
+    [id, username, passwordHash, name]
+  );
+
+  return toStaff(rows[0]);
 }

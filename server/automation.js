@@ -34,28 +34,28 @@ export async function runCycle({ force = false } = {}) {
     summary.sourced = candidates.length;
 
     for (const candidate of candidates) {
-      const existing = getRecordByFarm(candidate.farmName);
+      const existing = await getRecordByFarm(candidate.farmName);
       if (!force && !needsReview(existing)) continue;
 
       summary.processed += 1;
 
-      upsertRecord(candidate.farmName, {
+      await upsertRecord(candidate.farmName, {
         status: 'investigating',
         riskLevel: candidate.riskLevel,
         sourceReason: candidate.sourceReason,
       });
-      addHistory(candidate.farmName, 'sourced', candidate.sourceReason);
+      await addHistory(candidate.farmName, 'sourced', candidate.sourceReason);
 
       try {
         const result = await investigate(candidate.farmName);
 
-        upsertRecord(candidate.farmName, {
+        await upsertRecord(candidate.farmName, {
           status: 'notifying',
           riskLevel: result.riskLevel || candidate.riskLevel,
           investigation: result.report,
           lastReviewedAt: new Date().toISOString(),
         });
-        addHistory(candidate.farmName, 'investigated', result.report.summary || 'Investigation complete');
+        await addHistory(candidate.farmName, 'investigated', result.report.summary || 'Investigation complete');
 
         const notifyResult = await sendEmailNotification({
           farmName: candidate.farmName,
@@ -65,25 +65,25 @@ export async function runCycle({ force = false } = {}) {
         });
 
         if (notifyResult.ok) {
-          upsertRecord(candidate.farmName, { status: 'notified', notification: notifyResult });
-          addHistory(candidate.farmName, 'notified', 'Email notification sent');
+          await upsertRecord(candidate.farmName, { status: 'notified', notification: notifyResult });
+          await addHistory(candidate.farmName, 'notified', 'Email notification sent');
           summary.notified += 1;
         } else if (notifyResult.skipped) {
-          upsertRecord(candidate.farmName, { status: 'notify_skipped', notification: notifyResult });
-          addHistory(candidate.farmName, 'notify_skipped', notifyResult.error);
+          await upsertRecord(candidate.farmName, { status: 'notify_skipped', notification: notifyResult });
+          await addHistory(candidate.farmName, 'notify_skipped', notifyResult.error);
         } else {
-          upsertRecord(candidate.farmName, { status: 'notify_failed', notification: notifyResult });
-          addHistory(candidate.farmName, 'notify_failed', notifyResult.error);
+          await upsertRecord(candidate.farmName, { status: 'notify_failed', notification: notifyResult });
+          await addHistory(candidate.farmName, 'notify_failed', notifyResult.error);
           summary.failed += 1;
         }
       } catch (err) {
-        upsertRecord(candidate.farmName, { status: 'investigation_failed', lastReviewedAt: new Date().toISOString() });
-        addHistory(candidate.farmName, 'investigation_failed', err.message || 'Investigation agent failed');
+        await upsertRecord(candidate.farmName, { status: 'investigation_failed', lastReviewedAt: new Date().toISOString() });
+        await addHistory(candidate.farmName, 'investigation_failed', err.message || 'Investigation agent failed');
         summary.failed += 1;
       }
     }
 
-    addRun({ ...summary, durationMs: Date.now() - startedAt });
+    await addRun({ ...summary, durationMs: Date.now() - startedAt });
     return summary;
   } finally {
     running = false;

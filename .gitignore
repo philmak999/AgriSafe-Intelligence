@@ -11,9 +11,6 @@
 # production
 /dist
 
-# automation loop runtime state
-/server/data
-
 # misc
 .DS_Store
 .env

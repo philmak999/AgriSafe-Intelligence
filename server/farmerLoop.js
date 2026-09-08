@@ -80,7 +80,7 @@ function isWeeklyReportDueToday() {
 
 export async function runFarmerCycle({ force = false } = {}) {
   const summary = { farmers: 0, reminded: 0, weeklyReports: 0 };
-  const farmers = getActiveFarmers();
+  const farmers = await getActiveFarmers();
   summary.farmers = farmers.length;
 
   for (const farmer of farmers) {
@@ -95,7 +95,7 @@ export async function runFarmerCycle({ force = false } = {}) {
           items,
         });
         if (result.ok) {
-          updateFarmer(farmer.id, { lastReminderSentAt: new Date().toISOString() });
+          await updateFarmer(farmer.id, { lastReminderSentAt: new Date().toISOString() });
           summary.reminded += 1;
         }
       }
@@ -113,7 +113,7 @@ export async function runFarmerCycle({ force = false } = {}) {
             snapshot,
           });
           if (result.ok) {
-            updateFarmer(farmer.id, { lastWeeklyReportSentAt: new Date().toISOString() });
+            await updateFarmer(farmer.id, { lastWeeklyReportSentAt: new Date().toISOString() });
             summary.weeklyReports += 1;
           }
         }

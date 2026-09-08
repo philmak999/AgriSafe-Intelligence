@@ -22,6 +22,18 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      # Cloud SQL for PostgreSQL connection string (public IP + SSL). See
+      # .env.example for the format and setup steps.
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_SSL
+        value: true
+      - key: GCS_PROJECT_ID
+        sync: false
+      - key: GCS_BUCKET_NAME
+        sync: false
+      - key: GCS_KEY_JSON_BASE64
+        sync: false
       - key: GROQ_API_KEY
         sync: false
       - key: GROQ_MODEL
