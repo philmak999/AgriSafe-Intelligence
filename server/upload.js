@@ -1,26 +1,12 @@
-import fs from 'fs';
-import path from 'path';
 import multer from 'multer';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-export const UPLOAD_DIR = path.join(__dirname, 'data', 'uploads');
-
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const ALLOWED_TYPES = new Set(['application/pdf', 'image/png', 'image/jpeg', 'image/webp']);
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).slice(0, 10);
-    const safeName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}${ext}`;
-    cb(null, safeName);
-  },
-});
-
+// Buffered in memory, not written to disk — the route handler uploads the
+// buffer to GCS only after every validation passes, so a rejected upload
+// never leaves an orphaned file anywhere to clean up.
 export const uploadOwnershipDoc = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
   fileFilter: (req, file, cb) => {
     if (!ALLOWED_TYPES.has(file.mimetype)) {

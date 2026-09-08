@@ -1,6 +1,4 @@
 import 'dotenv/config';
-import fs from 'fs';
-import path from 'path';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -17,6 +15,8 @@ import { attachUser, requireAuth, requireRole, issueSession, clearSession } from
 import { getStaffByUsername } from './staffStore.js';
 import { seedTestAccounts } from './seedTestAccounts.js';
 import { uploadOwnershipDoc } from './upload.js';
+import { pool } from './db/pool.js';
+import * as gcs from './gcs.js';
 import {
   getAllFarmers,
   getPendingFarmers,
@@ -73,15 +73,16 @@ function publicFarmer(f) {
   return safe;
 }
 
-function cleanupUpload(req) {
-  if (req.file?.path) fs.unlink(req.file.path, () => {});
-}
-
 // Unauthenticated liveness probe — used by Render's health checks and by the
-// post-deploy check in the CI workflow. Deliberately reveals nothing about
-// app state beyond "the process is up".
-app.get('/api/health', (_req, res) => {
-  res.json({ ok: true, uptime: process.uptime() });
+// post-deploy check in the CI workflow. Checks the DB too, not just process
+// liveness, since a deploy can come up with the DB unreachable.
+app.get('/api/health', async (_req, res) => {
+  try {
+    await pool.query('SELECT 1');
+    res.json({ ok: true, uptime: process.uptime(), db: 'ok' });
+  } catch (err) {
+    res.status(503).json({ ok: false, uptime: process.uptime(), db: 'unreachable', error: err.message || err.code });
+  }
 });
 
 // --- Auth ------------------------------------------------------------------
@@ -92,7 +93,7 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
     return res.status(400).json({ error: 'Username and password are required.' });
   }
 
-  const staff = getStaffByUsername(username);
+  const staff = await getStaffByUsername(username);
   if (staff) {
     const ok = await bcrypt.compare(password, staff.passwordHash);
     if (!ok) return res.status(401).json({ error: 'Incorrect username or password.' });
@@ -100,7 +101,7 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
     return res.json({ user: { id: staff.id, role: 'scientist', name: staff.name } });
   }
 
-  const farmer = getFarmerByUsername(username);
+  const farmer = await getFarmerByUsername(username);
   if (!farmer) return res.status(401).json({ error: 'Incorrect username or password.' });
 
   const ok = await bcrypt.compare(password, farmer.passwordHash);
@@ -128,50 +129,55 @@ app.get('/api/auth/me', (req, res) => {
 
 // --- Farmer registration (public) ------------------------------------------
 
-app.get('/api/farmers/claimed', (req, res) => {
-  res.json(herds.map((h) => ({ farmName: h.farm, claimed: isFarmClaimed(h.farm) })));
+app.get('/api/farmers/claimed', async (req, res) => {
+  const claimed = await Promise.all(
+    herds.map(async (h) => ({ farmName: h.farm, claimed: await isFarmClaimed(h.farm) }))
+  );
+  res.json(claimed);
 });
 
 app.post('/api/auth/register', authLimiter, uploadOwnershipDoc.single('document'), async (req, res) => {
   const { username, password, name, email, farmName, farmId } = req.body || {};
 
   if (!username || !password || !name || !email || !farmName || !farmId) {
-    cleanupUpload(req);
     return res.status(400).json({ error: 'All fields are required.' });
   }
   if (!req.file) {
     return res.status(400).json({ error: 'A document confirming farm ownership is required (PDF, PNG, JPG, or WEBP).' });
   }
   if (password.length < 8) {
-    cleanupUpload(req);
     return res.status(400).json({ error: 'Password must be at least 8 characters.' });
   }
   if (!EMAIL_RE.test(email)) {
-    cleanupUpload(req);
     return res.status(400).json({ error: 'That email address doesn\'t look valid.' });
   }
-  if (isUsernameTaken(username) || getStaffByUsername(username)) {
-    cleanupUpload(req);
+  if ((await isUsernameTaken(username)) || (await getStaffByUsername(username))) {
     return res.status(409).json({ error: 'That username is already taken.' });
   }
 
   const herd = herds.find((h) => h.farm === farmName && h.id === farmId);
   if (!herd) {
-    cleanupUpload(req);
     return res.status(400).json({
       error: 'Farm name and Herd ID don\'t match our records. Check the Herd Records page for your exact ID.',
     });
   }
 
-  if (isFarmClaimed(farmName)) {
-    cleanupUpload(req);
-    const existing = getFarmerByFarm(farmName);
+  if (await isFarmClaimed(farmName)) {
+    const existing = await getFarmerByFarm(farmName);
     return res.status(409).json({
       error:
         existing?.status === 'pending_review'
           ? 'This farm has a registration awaiting staff review.'
           : 'This farm is already registered to another account.',
     });
+  }
+
+  let documentKey;
+  try {
+    documentKey = await gcs.uploadBuffer(req.file.buffer, req.file.originalname, req.file.mimetype);
+  } catch (err) {
+    console.error('document upload failed:', err);
+    return res.status(502).json({ error: 'Failed to upload ownership document. Please try again.' });
   }
 
   try {
@@ -182,7 +188,7 @@ app.post('/api/auth/register', authLimiter, uploadOwnershipDoc.single('document'
       email,
       farmName,
       farmId,
-      documentPath: req.file.path,
+      documentPath: documentKey,
       documentOriginalName: req.file.originalname,
     });
 
@@ -194,7 +200,7 @@ app.post('/api/auth/register', authLimiter, uploadOwnershipDoc.single('document'
       emailError: emailResult.ok ? null : emailResult.error,
     });
   } catch (err) {
-    cleanupUpload(req);
+    gcs.deleteObject(documentKey).catch(() => {});
     console.error('farmer registration failed:', err);
     res.status(502).json({ error: err.message || 'Registration failed' });
   }
@@ -202,24 +208,30 @@ app.post('/api/auth/register', authLimiter, uploadOwnershipDoc.single('document'
 
 // --- Staff review queue (scientist-only) ------------------------------------
 
-app.get('/api/farmers', requireRole('scientist'), (req, res) => {
-  res.json(getAllFarmers().map(publicFarmer));
+app.get('/api/farmers', requireRole('scientist'), async (req, res) => {
+  res.json((await getAllFarmers()).map(publicFarmer));
 });
 
-app.get('/api/farmers/pending', requireRole('scientist'), (req, res) => {
-  res.json(getPendingFarmers().map(publicFarmer));
+app.get('/api/farmers/pending', requireRole('scientist'), async (req, res) => {
+  res.json((await getPendingFarmers()).map(publicFarmer));
 });
 
-app.get('/api/farmers/:id/document', requireRole('scientist'), (req, res) => {
-  const farmer = getFarmerById(req.params.id);
-  if (!farmer?.documentPath || !fs.existsSync(farmer.documentPath)) {
+app.get('/api/farmers/:id/document', requireRole('scientist'), async (req, res) => {
+  const farmer = await getFarmerById(req.params.id);
+  if (!farmer?.documentPath) {
     return res.status(404).json({ error: 'No document on file.' });
   }
-  res.sendFile(path.resolve(farmer.documentPath));
+  try {
+    const url = await gcs.getSignedReadUrl(farmer.documentPath);
+    res.redirect(url);
+  } catch (err) {
+    console.error('document sign failed:', err);
+    res.status(404).json({ error: 'No document on file.' });
+  }
 });
 
 app.post('/api/farmers/:id/approve', requireRole('scientist'), async (req, res) => {
-  const farmer = approveFarmer(req.params.id);
+  const farmer = await approveFarmer(req.params.id);
   if (!farmer) return res.status(404).json({ error: 'Registration not found.' });
   const emailResult = await sendApprovalEmail({
     to: farmer.email,
@@ -231,7 +243,7 @@ app.post('/api/farmers/:id/approve', requireRole('scientist'), async (req, res) 
 });
 
 app.post('/api/farmers/:id/reject', requireRole('scientist'), async (req, res) => {
-  const farmer = rejectFarmer(req.params.id, req.body?.reason);
+  const farmer = await rejectFarmer(req.params.id, req.body?.reason);
   if (!farmer) return res.status(404).json({ error: 'Registration not found.' });
   const emailResult = await sendRejectionEmail({
     to: farmer.email,
@@ -242,9 +254,9 @@ app.post('/api/farmers/:id/reject', requireRole('scientist'), async (req, res) =
   res.json({ farmer: publicFarmer(farmer), emailSent: emailResult.ok });
 });
 
-app.delete('/api/farmers/:id', requireRole('scientist'), (req, res) => {
+app.delete('/api/farmers/:id', requireRole('scientist'), async (req, res) => {
   try {
-    const removed = deleteFarmer(req.params.id);
+    const removed = await deleteFarmer(req.params.id);
     if (!removed) return res.status(404).json({ error: 'No registration found with that ID.' });
     res.json({ removed: true });
   } catch (err) {
@@ -275,12 +287,12 @@ app.post('/api/investigate', requireRole('scientist'), async (req, res) => {
   }
 });
 
-app.get('/api/automation/records', requireRole('scientist'), (req, res) => {
-  res.json(getRecords());
+app.get('/api/automation/records', requireRole('scientist'), async (req, res) => {
+  res.json(await getRecords());
 });
 
-app.get('/api/automation/report', requireRole('scientist'), (req, res) => {
-  res.json(getReport());
+app.get('/api/automation/report', requireRole('scientist'), async (req, res) => {
+  res.json(await getReport());
 });
 
 app.post('/api/automation/run-now', requireRole('scientist'), async (req, res) => {
@@ -306,7 +318,6 @@ app.post('/api/farmer-loop/run-now', requireRole('scientist'), async (req, res) 
 // Multer errors (bad file type, too large) land here rather than the route handler.
 app.use((err, req, res, next) => {
   if (err) {
-    cleanupUpload(req);
     return res.status(400).json({ error: err.message || 'Upload failed' });
   }
   next();

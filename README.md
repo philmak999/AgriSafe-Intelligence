@@ -1,12 +1,14 @@
 # AgriSafe Intelligence
 
-Farm-to-fork agricultural biosecurity platform for farmers and agricultural researchers — a React/Vite frontend with an Express + SQLite-free (JSON file store) backend equipped with real authentication, AI risk-investigation agent with reasoning and recommendations, and autonomous email loops for risk warnings and audit report reminders.
+Farm-to-fork agricultural biosecurity platform for farmers and agricultural researchers — a React/Vite frontend with an Express + PostgreSQL backend (uploaded documents in Google Cloud Storage) equipped with real authentication, AI risk-investigation agent with reasoning and recommendations, and autonomous email loops for risk warnings and audit report reminders.
 
 ## Quick Start
 
 ```bash
 npm install
-cp .env.example .env      # then fill in GROQ_API_KEY and SMTP_* (see below)
+cp .env.example .env      # then fill in DATABASE_URL, GCS_*, GROQ_API_KEY and SMTP_* (see below)
+npm run db:up              # starts a local Postgres in Docker
+npm run db:migrate         # applies the schema
 npm run dev                # runs the frontend (Vite) + API server together
 ```
 
@@ -66,6 +68,8 @@ node server/seedTestAccounts.js
 
 See `.env.example` for the full list with explanations. At minimum for local dev:
 
+- `DATABASE_URL` — Postgres connection string; the default value matches `npm run db:up`'s local Docker container as-is
+- `GCS_PROJECT_ID` / `GCS_BUCKET_NAME` / `GCS_KEY_JSON_BASE64` — a Google Cloud Storage bucket + service-account key for storing farmer ownership documents; see `.env.example` for setup steps
 - `GROQ_API_KEY` — free key from [console.groq.com/keys](https://console.groq.com/keys), powers the Investigation Agent
 - `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` — needed for real emails (reminders, weekly reports, approval notices); Gmail App Passwords work well for this — see `.env.example` for setup steps
 - `JWT_SECRET` — random string signing login sessions; generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
@@ -84,13 +88,16 @@ Everything else (loop intervals, reminder windows, seed account credentials) has
 | `npm run lint` | ESLint over `src/` and `server/` |
 | `npm run test` | Runs the Vitest suite in watch mode |
 | `npm run test:run` | Runs the Vitest suite once (used in CI) |
+| `npm run db:up` | Starts a local Postgres container (Docker Compose) |
+| `npm run db:down` | Stops the local Postgres container |
+| `npm run db:migrate` | Applies any pending SQL migrations to `DATABASE_URL` (also runs automatically before `npm start`) |
 | `node server/seedTestAccounts.js` | (Re-)creates the `admin`/`admin` and `farmer`/`farmer` test accounts |
 
 ## CI/CD
 
-- **[ci.yml](.github/workflows/ci.yml)** — runs on every pull request and every push to a non-`main` branch: `npm ci` → lint → test → build. Nothing merges into `main` without passing this (enforce with a branch protection rule requiring the `build` check).
-- **[deploy-pages.yml](.github/workflows/deploy-pages.yml)** — runs on push to `main`: repeats lint/test/build as a self-contained gate, publishes `dist/` to GitHub Pages, then does a best-effort health check against the deployed backend (`API_BASE_URL` repo variable + `/api/health`) so a broken deploy shows up in the Actions tab instead of a support email.
-- **Backend** — deployed by Render via its own git integration, using [render.yaml](render.yaml) as the source of truth. Render also polls `/api/health` itself for zero-downtime rollouts.
+- **[ci.yml](.github/workflows/ci.yml)** — runs on every pull request and every push to a non-`main` branch: spins up a Postgres service container, then `npm ci` → lint → migrate → test → build. Nothing merges into `main` without passing this (enforce with a branch protection rule requiring the `build` check).
+- **[deploy-pages.yml](.github/workflows/deploy-pages.yml)** — runs on push to `main`: repeats the same Postgres + lint/migrate/test/build gate, publishes `dist/` to GitHub Pages, then does a best-effort health check against the deployed backend (`API_BASE_URL` repo variable + `/api/health`, which now also checks DB connectivity) so a broken deploy shows up in the Actions tab instead of a support email.
+- **Backend** — deployed by Render via its own git integration, using [render.yaml](render.yaml) as the source of truth. `npm start`'s `prestart` hook applies pending migrations against Cloud SQL on every deploy. Render also polls `/api/health` itself for zero-downtime rollouts.
 - **[dependabot.yml](.github/dependabot.yml)** — weekly PRs for outdated/vulnerable npm and GitHub Actions dependencies.
 
 Repo variables to set (Settings → Secrets and variables → Actions → Variables): `VITE_API_BASE_URL` (required, used by the frontend build) and `API_BASE_URL` (optional, same value without the `VITE_` prefix, enables the post-deploy health check).
@@ -99,8 +106,10 @@ Repo variables to set (Settings → Secrets and variables → Actions → Variab
 
 - `src/pages` — one file per routed page
 - `src/components` — reusable UI building blocks
-- `src/data/mockData.js` — shared mock dataset (herds, risk flags, inspections, compliance reports) — single source of truth for both the UI and the backend agent/automation tools
+- `src/data/mockData.js` — shared mock dataset (herds, risk flags, inspections, compliance reports) — static fixture data, not persisted state; single source of truth for both the UI and the backend agent/automation tools
 - `src/AuthContext.jsx` — frontend session state (current user, login/logout)
 - `src/routes.js` — route paths and per-page Topbar title/subtitle metadata
 - `server/` — Express API: authentication, the Investigation Agent, the two autonomous loops, and farmer registration/approval
-- `server/data/` — local JSON file stores (farmers, staff, automation history, uploaded documents) — gitignored, generated at runtime
+- `server/db/` — Postgres connection pool, hand-written SQL migrations, and the migration runner (`npm run db:migrate`)
+- `server/gcs.js` — Google Cloud Storage upload/signed-URL/delete helpers for farmer ownership documents
+- `server/staffStore.js`, `server/farmerStore.js`, `server/store.js` — the three persisted-data stores (staff accounts, farmer accounts, automation records/history/runs), all backed by Postgres via `server/db/pool.js`
