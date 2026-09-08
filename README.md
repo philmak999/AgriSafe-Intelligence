@@ -12,7 +12,7 @@ npm run db:migrate         # applies the schema
 npm run dev                # runs the frontend (Vite) + API server together
 ```
 
-Website: https://philmak999.github.io/AgriSafe-Intelligence/ 
+Website: https://philmak999.github.io/AgriSafe-Intelligence/login 
 Or locally:
 Open [http://localhost:5173](http://localhost:5173).
 
