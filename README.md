@@ -15,7 +15,7 @@ Livestock disease outbreaks move fast and get expensive quickly — a missed ins
 | Backend | Node.js, Express |
 | Database | PostgreSQL — Cloud SQL in production, Docker locally |
 | File storage | Google Cloud Storage (farmer ownership documents) |
-| AI | Groq (Llama 3.3 70B) — tool-calling risk-investigation agent |
+| AI | Llama 3.3 70B via OpenRouter — tool-calling risk-investigation agent |
 | Email | Nodemailer over SMTP |
 | Auth | JWT session cookies, bcrypt password hashing |
 | Frontend hosting | GitHub Pages |
@@ -30,7 +30,7 @@ flowchart LR
     Pages -->|REST API| API["Render<br/>Express backend"]
     API --> PG[("PostgreSQL<br/>Cloud SQL")]
     API --> GCS[("Google Cloud Storage<br/>ownership documents")]
-    API --> Groq["Groq API<br/>Investigation Agent"]
+    API --> OR["OpenRouter<br/>Investigation Agent"]
     API --> SMTP["SMTP<br/>email notifications"]
 ```
 
@@ -40,7 +40,7 @@ The frontend and backend deploy independently — GitHub Pages can't run a serve
 
 ```bash
 npm install
-cp .env.example .env      # then fill in DATABASE_URL, GCS_*, GROQ_API_KEY and SMTP_* (see below)
+cp .env.example .env      # then fill in DATABASE_URL, GCS_*, OPENROUTER_API_KEY and SMTP_* (see below)
 npm run db:up              # starts a local Postgres in Docker
 npm run db:migrate         # applies the schema
 npm run dev                # runs the frontend (Vite) + API server together
@@ -73,7 +73,7 @@ node server/seedTestAccounts.js
 ### Scientist-only tools
 - **MRI Model Config** — live-adjustable sub-index weights (vaccination, antibiotics, herd density, outbreak proximity) with a real-time gauge preview
 - **Pathogen Trends** — monthly detection trends and frequency breakdown by pathogen
-- **Risk Investigation Agent** — click "Investigate →" on any flagged farm to run a Groq-powered, tool-calling AI agent that pulls the herd record, risk timeline, inspection history, and compliance status, then returns a structured summary, findings, and recommendation
+- **Risk Investigation Agent** — click "Investigate →" on any flagged farm to run a tool-calling AI agent (Llama 3.3 70B via OpenRouter) that pulls the herd record, risk timeline, inspection history, and compliance status, then returns a structured summary, findings, and recommendation
 - **Automation Log** — a fully autonomous loop, running independently of any user session, that:
   - **Sources** newly-flagged (HIGH/MED risk) farms from live risk data
   - **Follows up** by running the Investigation Agent and emailing the findings to an ops inbox
@@ -102,7 +102,7 @@ See `.env.example` for the full list with explanations. At minimum for local dev
 
 - `DATABASE_URL` — Postgres connection string; the default value matches `npm run db:up`'s local Docker container as-is
 - `GCS_PROJECT_ID` / `GCS_BUCKET_NAME` / `GCS_KEY_JSON_BASE64` — a Google Cloud Storage bucket and service-account key for storing farmer ownership documents
-- `GROQ_API_KEY` — free key from [console.groq.com/keys](https://console.groq.com/keys), powers the Investigation Agent
+- `OPENROUTER_API_KEY` — key from [openrouter.ai/keys](https://openrouter.ai/keys), powers the Investigation Agent (pay-per-token, no subscription)
 - `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` — needed for real emails (reminders, weekly reports, approval notices); Gmail App Passwords work well here
 - `JWT_SECRET` — random string signing login sessions; generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
 
@@ -133,7 +133,7 @@ The frontend and backend are two independently deployed services with no shared 
 Built and published by [`deploy-pages.yml`](.github/workflows/deploy-pages.yml) on every push to `main`. `VITE_API_BASE_URL` is baked into the static build at compile time (via a GitHub Actions repo variable) so the deployed frontend knows where to reach the API — GitHub Pages serves static files only and can't proxy requests itself.
 
 ### Backend — Render
-The Express API runs as a Render web service, auto-deployed from this repo. [`render.yaml`](render.yaml) is a Render Blueprint — infrastructure as code for the service's build/start commands, health check path, and environment variable slots. Secrets (`DATABASE_URL`, `GCS_*`, `GROQ_API_KEY`, `SMTP_*`, `JWT_SECRET`) are entered in the Render dashboard, never committed. On every deploy, the `prestart` npm hook applies any pending Postgres migrations before the server starts, and Render polls `/api/health` (which checks both process liveness and DB connectivity) for zero-downtime rollouts.
+The Express API runs as a Render web service, auto-deployed from this repo. [`render.yaml`](render.yaml) is a Render Blueprint — infrastructure as code for the service's build/start commands, health check path, and environment variable slots. Secrets (`DATABASE_URL`, `GCS_*`, `OPENROUTER_API_KEY`, `SMTP_*`, `JWT_SECRET`) are entered in the Render dashboard, never committed. On every deploy, the `prestart` npm hook applies any pending Postgres migrations before the server starts, and Render polls `/api/health` (which checks both process liveness and DB connectivity) for zero-downtime rollouts.
 
 ### Database & file storage — Google Cloud
 Production data lives in a Cloud SQL for PostgreSQL instance (reached over its public IP with SSL enforced) and farmer ownership documents live in a Google Cloud Storage bucket, served back to staff via short-lived signed URLs rather than public links. Locally, the same schema runs against a disposable Postgres container (`npm run db:up`) via the same SQL migrations in [`server/db/migrations/`](server/db/migrations/), and uploads go to the same GCS bucket.
@@ -154,7 +154,7 @@ Repo variables to set (Settings → Secrets and variables → Actions → Variab
 - `src/AuthContext.jsx` — frontend session state (current user, login/logout)
 - `src/routes.js` — route paths and per-page Topbar title/subtitle metadata
 - `server/index.js` — Express app: routes, middleware, server bootstrap
-- `server/agent.js` — the AI risk-investigation agent (Groq tool-calling loop)
+- `server/agent.js` — the AI risk-investigation agent (OpenRouter tool-calling loop)
 - `server/automation.js` / `server/farmerLoop.js` — the two autonomous background loops
 - `server/auth.js` — JWT sessions and role-gating middleware
 - `server/gcs.js` — Google Cloud Storage upload / signed-URL / delete helpers

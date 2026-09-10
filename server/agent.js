@@ -1,15 +1,27 @@
-import Groq from 'groq-sdk';
+import OpenAI from 'openai';
 import { toolDefinitions, toolImplementations } from './tools.js';
 
-const MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+// Routed through OpenRouter (openrouter.ai) rather than a model provider
+// directly — its API is OpenAI-request-shaped, so the official `openai`
+// package works unmodified by just pointing baseURL at OpenRouter.
+const MODEL = process.env.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct';
 const MAX_ITERATIONS = 6;
 
-// Constructed lazily so the server can boot even before GROQ_API_KEY is set —
-// the route handler checks for the key and returns a clear error first.
-let groq = null;
+// Constructed lazily so the server can boot even before OPENROUTER_API_KEY
+// is set — the route handler checks for the key and returns a clear error first.
+let client = null;
 function getClient() {
-  if (!groq) groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-  return groq;
+  if (!client) {
+    client = new OpenAI({
+      apiKey: process.env.OPENROUTER_API_KEY,
+      baseURL: 'https://openrouter.ai/api/v1',
+      defaultHeaders: {
+        'HTTP-Referer': process.env.APP_BASE_URL || 'http://localhost:5173',
+        'X-Title': 'AgriSafe Intelligence',
+      },
+    });
+  }
+  return client;
 }
 
 const SYSTEM_PROMPT = `You are the AgriSafe Intelligence Risk Investigation Agent, an assistant for biosecurity inspectors and producers monitoring farms and processing facilities across the Ontario + NYS corridor.
