@@ -75,7 +75,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
       # Render deploys the API on its own (triggered by the same push to
       # main) and isn't controlled by this workflow, so this can't gate the
