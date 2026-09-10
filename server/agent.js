@@ -4,7 +4,7 @@ import { toolDefinitions, toolImplementations } from './tools.js';
 // Routed through OpenRouter (openrouter.ai) rather than a model provider
 // directly — its API is OpenAI-request-shaped, so the official `openai`
 // package works unmodified by just pointing baseURL at OpenRouter.
-const MODEL = process.env.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct';
+const MODEL = process.env.OPENROUTER_MODEL || 'nex-agi/nex-n2.5-mini:free';
 const MAX_ITERATIONS = 6;
 
 // Constructed lazily so the server can boot even before OPENROUTER_API_KEY
