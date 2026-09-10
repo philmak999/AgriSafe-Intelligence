@@ -272,9 +272,9 @@ app.post('/api/investigate', requireRole('scientist'), async (req, res) => {
   if (!farmName || typeof farmName !== 'string') {
     return res.status(400).json({ error: 'farmName is required' });
   }
-  if (!process.env.GROQ_API_KEY) {
+  if (!process.env.OPENROUTER_API_KEY) {
     return res.status(500).json({
-      error: 'GROQ_API_KEY is not set. Add a free key from console.groq.com to your .env file.',
+      error: 'OPENROUTER_API_KEY is not set. Add a key from openrouter.ai/keys to your .env file.',
     });
   }
 

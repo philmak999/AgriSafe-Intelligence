@@ -88,7 +88,7 @@ export default function RiskInvestigationButton({ farmName }) {
                 {error}
                 <div className="investigate-error-hint">
                   Check that the API server is running (<code>npm run dev</code>) and that{' '}
-                  <code>GROQ_API_KEY</code> is set in <code>.env</code>.
+                  <code>OPENROUTER_API_KEY</code> is set in <code>.env</code>.
                 </div>
               </div>
             )}
