@@ -37,7 +37,7 @@ services:
       - key: OPENROUTER_API_KEY
         sync: false
       - key: OPENROUTER_MODEL
-        value: meta-llama/llama-3.3-70b-instruct
+        value: nex-agi/nex-n2.5-mini:free
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT
