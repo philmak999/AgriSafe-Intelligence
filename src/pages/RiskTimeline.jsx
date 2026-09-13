@@ -1,4 +1,3 @@
-import React from 'react';
 import Timeline from '../components/Timeline';
 import { riskTimelineEvents } from '../data/mockData';
 import { useAuth } from '../AuthContext';

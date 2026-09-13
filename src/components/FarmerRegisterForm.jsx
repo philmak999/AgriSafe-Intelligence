@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { herds } from '../data/mockData';
 import { API_BASE } from '../apiBase';
 
@@ -77,8 +77,8 @@ export default function FarmerRegisterForm() {
       <p style={{ fontSize: '12.5px', color: 'var(--gray-dark)', lineHeight: 1.5, marginBottom: 14 }}>
         Create your account, then confirm ownership two ways: the <strong>Herd ID</strong> on your
         inspection paperwork (also shown on the Herd Records page) must match the farm you select,
-        and you'll need to attach a document proving ownership — a deed, lease, government Premises
-        ID letter, or a recent inspection report with your name and the farm's address. An AgriSafe
+        and you’ll need to attach a document proving ownership — a deed, lease, government Premises
+        ID letter, or a recent inspection report with your name and the farm’s address. An AgriSafe
         staff member reviews every submission before your account is activated.
       </p>
 

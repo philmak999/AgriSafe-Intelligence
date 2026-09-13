@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { API_BASE } from '../apiBase';
 
 export default function PendingApprovalsTable({ pending, onDecided }) {

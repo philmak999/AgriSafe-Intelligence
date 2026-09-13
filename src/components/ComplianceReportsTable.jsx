@@ -1,4 +1,3 @@
-import React from 'react';
 import { complianceReports } from '../data/mockData';
 
 export default function ComplianceReportsTable({ scopeFarm }) {

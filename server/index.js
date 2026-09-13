@@ -11,7 +11,7 @@ import { runCycle, startAutomationLoop } from './automation.js';
 import { getRecords, getReport } from './store.js';
 import { runFarmerCycle, startFarmerLoop } from './farmerLoop.js';
 import { sendRegistrationReceivedEmail, sendApprovalEmail, sendRejectionEmail } from './notify.js';
-import { attachUser, requireAuth, requireRole, issueSession, clearSession } from './auth.js';
+import { attachUser, requireRole, issueSession, clearSession } from './auth.js';
 import { getStaffByUsername } from './staffStore.js';
 import { seedTestAccounts } from './seedTestAccounts.js';
 import { uploadOwnershipDoc } from './upload.js';
@@ -181,7 +181,7 @@ app.post('/api/auth/register', authLimiter, uploadOwnershipDoc.single('document'
   }
 
   try {
-    const farmer = await createFarmer({
+    await createFarmer({
       username,
       password,
       name,

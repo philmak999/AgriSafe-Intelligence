@@ -1,4 +1,3 @@
-import React from 'react';
 
 import MetricCards from '../components/MetricCards';
 import MRIChart from '../components/MRIChart';

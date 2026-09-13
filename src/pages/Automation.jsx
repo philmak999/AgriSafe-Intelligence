@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import AutomationSummary from '../components/AutomationSummary';
 import AutomationRecordsTable from '../components/AutomationRecordsTable';
 import AutomationRunsList from '../components/AutomationRunsList';

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import PendingApprovalsTable from '../components/PendingApprovalsTable';
 import RegisteredFarmersTable from '../components/RegisteredFarmersTable';
 import { API_BASE } from '../apiBase';
