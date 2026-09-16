@@ -102,8 +102,7 @@ export default function MRIModelConfig() {
       <div className="card">
         <div className="card-title">Farm-Specific Sub-Index Readings</div>
         <p style={{ fontSize: '12.5px', color: 'var(--gray-dark)', lineHeight: 1.5, marginBottom: 14 }}>
-          Vaccination and antibiotic readings come from a scientist-approved uploaded document for
-          this farm, not a hand-set value — upload evidence on the Documents page to update them.
+          Vaccination and antibiotic compliance must be scientist-approved before MRI is updated — upload evidence on the Documents page to update them.
         </p>
         <label className="register-field" style={{ maxWidth: 320, marginBottom: 14 }}>
           <span>Farm</span>
