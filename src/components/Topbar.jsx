@@ -1,4 +1,4 @@
-import React from 'react';
+import ActivityFeed from './ActivityFeed';
 
 export default function Topbar({ title, subtitle, onMenuClick }) {
   return (
@@ -17,6 +17,7 @@ export default function Topbar({ title, subtitle, onMenuClick }) {
       </div>
 
       <div className="topbar-actions">
+        <ActivityFeed />
         <div className="alert-pill">
           <span className="alert-dot" />
           3 active alerts

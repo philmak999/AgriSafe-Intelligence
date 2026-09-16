@@ -1,4 +1,3 @@
-import React from 'react';
 import { inspectionHistory } from '../data/mockData';
 
 export default function InspectionLog({ scopeFarm }) {

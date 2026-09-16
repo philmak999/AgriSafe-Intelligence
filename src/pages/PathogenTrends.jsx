@@ -1,4 +1,3 @@
-import React from 'react';
 import PathogenTrendChart from '../components/PathogenTrendChart';
 import PathogenFrequencyChart from '../components/PathogenFrequencyChart';
 

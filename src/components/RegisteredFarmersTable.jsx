@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { timeAgo } from '../utils/timeAgo';
 import { API_BASE } from '../apiBase';
 

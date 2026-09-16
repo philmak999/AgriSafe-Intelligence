@@ -1,4 +1,3 @@
-import React from 'react';
 import RiskInvestigationButton from './RiskInvestigationButton';
 
 export default function Timeline({ events }) {

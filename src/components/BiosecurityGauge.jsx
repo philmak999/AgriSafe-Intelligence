@@ -1,4 +1,3 @@
-import React from 'react';
 
 const defaultSubIndexes = [
   { name: 'Vaccination coverage', pct: 82, color: '#1D9E75' },

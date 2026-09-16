@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { herds } from '../data/mockData';
 import RiskInvestigationButton from './RiskInvestigationButton';
 

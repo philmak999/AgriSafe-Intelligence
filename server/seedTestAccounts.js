@@ -11,8 +11,14 @@ const TEST_FARM = { farmName: 'Seneca Valley Farms', farmId: 'NY-0455' };
 
 async function seedAdmin() {
   if (await getStaffByUsername('admin')) return;
-  await createStaffAccount({ username: 'admin', password: 'admin', name: 'Admin (Test Account)' });
-  console.log('Seeded staff account: username="admin" password="admin" (full access).');
+  await createStaffAccount({ username: 'admin', password: 'admin', name: 'Admin (Test Account)', role: 'scientist' });
+  console.log('Seeded staff account: username="admin" password="admin" (scientist, full access).');
+}
+
+async function seedInspector() {
+  if (await getStaffByUsername('inspector')) return;
+  await createStaffAccount({ username: 'inspector', password: 'inspector', name: 'Inspector (Test Account)', role: 'inspector' });
+  console.log('Seeded staff account: username="inspector" password="inspector" (inspector role).');
 }
 
 async function seedFarmer() {
@@ -33,6 +39,7 @@ async function seedFarmer() {
 
 export async function seedTestAccounts() {
   await seedAdmin();
+  await seedInspector();
   await seedFarmer();
 }
 

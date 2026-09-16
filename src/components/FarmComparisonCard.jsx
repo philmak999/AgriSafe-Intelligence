@@ -1,4 +1,3 @@
-import React from 'react';
 import { computeMriPercentile, percentileLabel } from '../utils/percentile';
 
 export default function FarmComparisonCard({ farmName }) {
@@ -14,7 +13,7 @@ export default function FarmComparisonCard({ farmName }) {
       <div className="comparison-label">{percentileLabel(percentile)}</div>
       <p className="comparison-note">
         Based on biosecurity (MRI) score against other farms in the Ontario + NYS corridor.
-        Individual details of other farms aren't shown here.
+        Individual details of other farms aren’t shown here.
       </p>
     </div>
   );
