@@ -1,4 +1,3 @@
-import React from 'react';
 import PathogenFrequencyChart from './PathogenFrequencyChart';
 
 const queue = [

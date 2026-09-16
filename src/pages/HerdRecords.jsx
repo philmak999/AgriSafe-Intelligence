@@ -1,4 +1,3 @@
-import React from 'react';
 import HerdRecordsTable from '../components/HerdRecordsTable';
 import FarmComparisonCard from '../components/FarmComparisonCard';
 import { useAuth } from '../AuthContext';

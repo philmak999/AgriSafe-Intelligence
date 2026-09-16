@@ -1,4 +1,3 @@
-import React from 'react';
 import { timeAgo } from '../utils/timeAgo';
 
 export default function AutomationSummary({ report }) {

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import MRIWeightSlider from '../components/MRIWeightSlider';
 import BiosecurityGauge from '../components/BiosecurityGauge';
 import { API_BASE } from '../apiBase';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { riskFlags } from '../data/mockData';
 import RiskInvestigationButton from './RiskInvestigationButton';
 

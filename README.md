@@ -15,7 +15,7 @@ Livestock disease outbreaks move fast and get expensive quickly — a missed ins
 | Backend | Node.js, Express |
 | Database | PostgreSQL — Cloud SQL in production, Docker locally |
 | File storage | Google Cloud Storage (farmer ownership documents) |
-| AI | Llama 3.3 70B via OpenRouter — tool-calling risk-investigation agent |
+| AI | Nex-N2.5 Mini via OpenRouter — tool-calling risk-investigation agent |
 | Email | Nodemailer over SMTP |
 | Auth | JWT session cookies, bcrypt password hashing |
 | Frontend hosting | GitHub Pages |
@@ -73,7 +73,7 @@ node server/seedTestAccounts.js
 ### Scientist-only tools
 - **MRI Model Config** — live-adjustable sub-index weights (vaccination, antibiotics, herd density, outbreak proximity) with a real-time gauge preview
 - **Pathogen Trends** — monthly detection trends and frequency breakdown by pathogen
-- **Risk Investigation Agent** — click "Investigate →" on any flagged farm to run a tool-calling AI agent (Llama 3.3 70B via OpenRouter) that pulls the herd record, risk timeline, inspection history, and compliance status, then returns a structured summary, findings, and recommendation
+- **Risk Investigation Agent** — click "Investigate →" on any flagged farm to run an OpenRouter-powered, tool-calling AI agent that pulls the herd record, risk timeline, inspection history, and compliance status, then returns a structured summary, findings, and recommendation
 - **Automation Log** — a fully autonomous loop, running independently of any user session, that:
   - **Sources** newly-flagged (HIGH/MED risk) farms from live risk data
   - **Follows up** by running the Investigation Agent and emailing the findings to an ops inbox
@@ -102,7 +102,7 @@ See `.env.example` for the full list with explanations. At minimum for local dev
 
 - `DATABASE_URL` — Postgres connection string; the default value matches `npm run db:up`'s local Docker container as-is
 - `GCS_PROJECT_ID` / `GCS_BUCKET_NAME` / `GCS_KEY_JSON_BASE64` — a Google Cloud Storage bucket and service-account key for storing farmer ownership documents
-- `OPENROUTER_API_KEY` — key from [openrouter.ai/keys](https://openrouter.ai/keys), powers the Investigation Agent (pay-per-token, no subscription)
+- `OPENROUTER_API_KEY` — key from [openrouter.ai/keys](https://openrouter.ai/keys), powers the Investigation Agent
 - `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS` — needed for real emails (reminders, weekly reports, approval notices); Gmail App Passwords work well here
 - `JWT_SECRET` — random string signing login sessions; generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
 

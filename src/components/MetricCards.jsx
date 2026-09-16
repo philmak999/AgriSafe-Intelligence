@@ -1,4 +1,3 @@
-import React from 'react';
 import { herds } from '../data/mockData';
 import { computeMriPercentile } from '../utils/percentile';
 

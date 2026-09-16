@@ -1,4 +1,3 @@
-import React from 'react';
 import ActivityFeed from './ActivityFeed';
 
 export default function Topbar({ title, subtitle, onMenuClick }) {
