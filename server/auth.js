@@ -63,10 +63,14 @@ export function requireAuth(req, res, next) {
   next();
 }
 
-export function requireRole(role) {
+// Accepts a single role ('scientist') or a list (['scientist', 'inspector'])
+// so a route can be shared by more than one staff role without a separate
+// middleware per combination.
+export function requireRole(roles) {
+  const allowed = Array.isArray(roles) ? roles : [roles];
   return (req, res, next) => {
     if (!req.user) return res.status(401).json({ error: 'Sign in required.' });
-    if (req.user.role !== role) return res.status(403).json({ error: 'Not authorized for this action.' });
+    if (!allowed.includes(req.user.role)) return res.status(403).json({ error: 'Not authorized for this action.' });
     next();
   };
 }

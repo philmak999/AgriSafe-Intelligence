@@ -18,15 +18,15 @@ export async function getStaffByUsername(username) {
   return toStaff(rows[0]);
 }
 
-export async function createStaffAccount({ username, password, name }) {
+export async function createStaffAccount({ username, password, name, role = 'scientist' }) {
   const passwordHash = await bcrypt.hash(password, 10);
   const id = `staff_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
   const { rows } = await pool.query(
-    `INSERT INTO staff (id, username, password_hash, name)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO staff (id, username, password_hash, name, role)
+     VALUES ($1, $2, $3, $4, $5)
      RETURNING *`,
-    [id, username, passwordHash, name]
+    [id, username, passwordHash, name, role]
   );
 
   return toStaff(rows[0]);

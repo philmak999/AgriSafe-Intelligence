@@ -29,6 +29,13 @@ const navSections = [
     ],
   },
   {
+    label: 'Field Work',
+    items: [
+      { id: 'documents', label: 'Documents', path: ROUTES.documents, badge: null },
+      { id: 'inspections', label: 'Inspections', path: ROUTES.inspections, badge: null },
+    ],
+  },
+  {
     label: 'Science',
     staffOnly: true,
     items: [
@@ -111,6 +118,20 @@ const NavIcon = ({ id }) => {
         <polyline points="2,4.5 8,9 14,4.5"/>
       </svg>
     ),
+    'documents': (
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
+        <path d="M4 1.5h5.5L12 4v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1z"/>
+        <path d="M9 1.5V4h3"/>
+        <line x1="5" y1="8" x2="10" y2="8"/>
+        <line x1="5" y1="11" x2="10" y2="11"/>
+      </svg>
+    ),
+    'inspections': (
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="1.5" width="12" height="13" rx="1.5"/>
+        <polyline points="5,7.5 7,9.5 11,5.5"/>
+      </svg>
+    ),
   };
   return (
     <span className="nav-item-icon">
@@ -126,7 +147,12 @@ function initials(name) {
 export default function Sidebar({ open, onClose }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const isStaff = user?.role === 'scientist';
+  const isScientist = user?.role === 'scientist';
+  const roleLabel = isScientist
+    ? 'AgriSafe Scientist'
+    : user?.role === 'inspector'
+      ? 'Field Inspector'
+      : `Farmer · ${user?.farmName}`;
 
   const handleLogout = async () => {
     await logout();
@@ -157,7 +183,7 @@ export default function Sidebar({ open, onClose }) {
       {/* Navigation */}
       <nav className="sidebar-nav">
         {navSections
-          .filter((section) => !section.staffOnly || isStaff)
+          .filter((section) => !section.staffOnly || isScientist)
           .map((section) => (
             <div key={section.label}>
               <div className="nav-section-label">{section.label}</div>
@@ -185,9 +211,7 @@ export default function Sidebar({ open, onClose }) {
           <div className="profile-avatar">{initials(user.name)}</div>
           <div className="profile-info">
             <span className="profile-name">{user.name}</span>
-            <span className="profile-role">
-              {isStaff ? 'AgriSafe Scientist' : `Farmer · ${user.farmName}`}
-            </span>
+            <span className="profile-role">{roleLabel}</span>
           </div>
           <ThemeToggle />
           <button type="button" className="profile-logout" onClick={handleLogout} title="Sign out">

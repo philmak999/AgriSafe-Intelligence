@@ -4,7 +4,7 @@ import { toolDefinitions, toolImplementations } from './tools.js';
 // Routed through OpenRouter (openrouter.ai) rather than a model provider
 // directly — its API is OpenAI-request-shaped, so the official `openai`
 // package works unmodified by just pointing baseURL at OpenRouter.
-const MODEL = process.env.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct';
+const MODEL = process.env.OPENROUTER_MODEL || 'nex-agi/nex-n2.5-mini:free';
 const MAX_ITERATIONS = 6;
 
 // Constructed lazily so the server can boot even before OPENROUTER_API_KEY
@@ -29,8 +29,10 @@ const SYSTEM_PROMPT = `You are the AgriSafe Intelligence Risk Investigation Agen
 Given a farm or facility name, investigate its current biosecurity risk by calling the available tools to gather:
 - its herd registry record (species, head count, vaccination rate, MRI score, risk level)
 - recent risk timeline events
-- inspection history
+- inspection history (processing-facility pathogen screens)
 - compliance filing status
+- real uploaded evidence documents for the farm (vaccination certificates, lab results) and any AI-suggested score changes awaiting review
+- real inspector-submitted biosecurity checklist inspections for the farm (perimeter control, PPE, pest control, etc.), including any failed items and corrective actions
 
 Call tools as needed (a name may only match some of them — that's fine, note what's missing). Once you have enough information, respond with a plain-text investigation report using exactly this structure, with no markdown formatting (no asterisks, no headers):
 
@@ -114,7 +116,10 @@ export async function investigate(farmName) {
       }
 
       const impl = toolImplementations[name];
-      const result = impl ? impl(args) : { error: `Unknown tool: ${name}` };
+      // Awaited even though the original four tools are synchronous —
+      // get_farm_documents/get_farm_inspections hit the database and return
+      // promises; awaiting a non-promise value is a no-op.
+      const result = impl ? await impl(args) : { error: `Unknown tool: ${name}` };
 
       steps.push({ tool: name, args, result });
 
@@ -136,4 +141,57 @@ export async function investigate(farmName) {
       recommendation: '',
     },
   };
+}
+
+const DOCUMENT_SUMMARY_PROMPT = `You are the AgriSafe Intelligence document review assistant. You are given the raw text extracted (via OCR) from a document a farmer or inspector uploaded, plus its category and the farm it's for.
+
+Respond with ONLY a JSON object, no markdown, no commentary, matching exactly this shape:
+{"summary": "one sentence describing what the document shows", "subIndexKey": "vaccination" | "antibiotic" | null, "suggestedValue": 0-100 integer or null, "rationale": "one sentence citing specific text from the document, or null"}
+
+Rules:
+- Only set subIndexKey to "vaccination" if the document is a vaccination certificate/record with enough detail to estimate herd vaccination coverage as a 0-100 percentage. Only set it to "antibiotic" if the document is a lab result showing antibiotic residue/compliance testing.
+- If the document doesn't clearly support a specific sub-index number (e.g. an ownership deed, an illegible scan, a compliance filing with no coverage/compliance figures), set subIndexKey, suggestedValue, and rationale to null — do not guess.
+- Never invent facts not present in the extracted text. If the text is empty or unreadable, return nulls for everything except a summary noting that.`;
+
+export function parseDocumentSummary(text) {
+  const clean = (text || '').trim();
+  const jsonMatch = clean.match(/\{[\s\S]*\}/);
+  const fallback = { summary: clean.slice(0, 300) || 'Document processed; no summary available.', subIndexKey: null, suggestedValue: null, rationale: null };
+  if (!jsonMatch) return fallback;
+
+  try {
+    const parsed = JSON.parse(jsonMatch[0]);
+    const value = Number(parsed.suggestedValue);
+    return {
+      summary: typeof parsed.summary === 'string' && parsed.summary ? parsed.summary : fallback.summary,
+      subIndexKey: parsed.subIndexKey === 'vaccination' || parsed.subIndexKey === 'antibiotic' ? parsed.subIndexKey : null,
+      suggestedValue: Number.isFinite(value) && value >= 0 && value <= 100 ? Math.round(value) : null,
+      rationale: typeof parsed.rationale === 'string' ? parsed.rationale : null,
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+// One-shot call (not the tool-calling loop above) — turns OCR'd document
+// text into a summary and, when the document supports it, a proposed
+// sub-index change for a scientist to review. Never auto-applies a score.
+export async function summarizeDocumentForRisk({ extractedText, category, farmName }) {
+  if (!extractedText || !extractedText.trim()) {
+    return { summary: 'No readable text could be extracted from this document.', subIndexKey: null, suggestedValue: null, rationale: null };
+  }
+
+  const completion = await getClient().chat.completions.create({
+    model: MODEL,
+    messages: [
+      { role: 'system', content: DOCUMENT_SUMMARY_PROMPT },
+      {
+        role: 'user',
+        content: `Farm: ${farmName}\nDocument category: ${category}\nExtracted text:\n${extractedText.slice(0, 6000)}`,
+      },
+    ],
+    temperature: 0.1,
+  });
+
+  return parseDocumentSummary(completion.choices[0].message.content);
 }

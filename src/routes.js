@@ -11,6 +11,8 @@ export const ROUTES = {
   automation: '/automation',
   farmerRegister: '/register',
   farmerApprovals: '/farmer-approvals',
+  documents: '/documents',
+  inspections: '/inspections',
   login: '/login',
 };
 
@@ -54,6 +56,14 @@ export const ROUTE_META = {
   [ROUTES.farmerApprovals]: {
     title: 'Farmer approvals',
     subtitle: 'Review pending registrations & ownership documentation',
+  },
+  [ROUTES.documents]: {
+    title: 'Documents',
+    subtitle: 'Evidence uploads — vaccination certificates, lab results & filings',
+  },
+  [ROUTES.inspections]: {
+    title: 'Inspections',
+    subtitle: 'On-site biosecurity checklist inspections',
   },
   [ROUTES.login]: {
     title: 'Sign in',

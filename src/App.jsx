@@ -15,6 +15,8 @@ import PathogenTrends from './pages/PathogenTrends';
 import Automation from './pages/Automation';
 import FarmerRegister from './pages/FarmerRegister';
 import FarmerApprovals from './pages/FarmerApprovals';
+import Documents from './pages/Documents';
+import Inspections from './pages/Inspections';
 import Login from './pages/Login';
 import NotFound from './pages/NotFound';
 import ThemeToggle from './components/ThemeToggle';
@@ -87,6 +89,8 @@ export default function App() {
         <Route path={ROUTES.herdRecords} element={<HerdRecords />} />
         <Route path={ROUTES.inspectionLog} element={<InspectionLogPage />} />
         <Route path={ROUTES.complianceReports} element={<ComplianceReports />} />
+        <Route path={ROUTES.documents} element={<Documents />} />
+        <Route path={ROUTES.inspections} element={<Inspections />} />
 
         <Route element={<ScientistLayout />}>
           <Route path={ROUTES.mriModel} element={<MRIModelConfig />} />
