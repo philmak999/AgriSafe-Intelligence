@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../AuthContext';
 import { API_BASE } from '../apiBase';
 import { herds } from '../data/mockData';
@@ -89,7 +89,7 @@ export default function Documents() {
         <p style={{ fontSize: '12.5px', color: 'var(--gray-dark)', lineHeight: 1.5, marginBottom: 14 }}>
           Vaccination certificates and lab results are read automatically and, when the document
           supports it, the AI proposes an updated MRI sub-index value for a scientist to review —
-          it's never applied without sign-off.
+          it’s never applied without sign-off.
         </p>
         <form onSubmit={handleUpload} className="register-form">
           {isStaff && (

@@ -71,14 +71,19 @@ node server/seedTestAccounts.js
 - **Compliance Reports** — regulatory filing status (FSMA 204, CFIA Part 11, USDA FSIS)
 
 ### Scientist-only tools
-- **MRI Model Config** — live-adjustable sub-index weights (vaccination, antibiotics, herd density, outbreak proximity) with a real-time gauge preview
+- **MRI Model Config** — per-farm sub-index readings (vaccination, antibiotics) are sourced from scientist-approved uploaded evidence, not hand-set; herd density and outbreak proximity stay regional/registry-derived. The scoring **methodology** (weights) is edited separately, requires a written reason, and every change is kept in a permanent, attributed history
 - **Pathogen Trends** — monthly detection trends and frequency breakdown by pathogen
-- **Risk Investigation Agent** — click "Investigate →" on any flagged farm to run an OpenRouter-powered, tool-calling AI agent that pulls the herd record, risk timeline, inspection history, and compliance status, then returns a structured summary, findings, and recommendation
+- **Risk Investigation Agent** — click "Investigate →" on any flagged farm to run an OpenRouter-powered, tool-calling AI agent that pulls the herd record, risk timeline, inspection history, compliance status, and now also real uploaded documents and inspector-submitted checklists for that farm, then returns a structured summary, findings, and recommendation
 - **Automation Log** — a fully autonomous loop, running independently of any user session, that:
   - **Sources** newly-flagged (HIGH/MED risk) farms from live risk data
   - **Follows up** by running the Investigation Agent and emailing the findings to an ops inbox
   - **Tracks** every farm's status and history in Postgres, with a cooldown so it doesn't re-notify every cycle
   - **Reports** a live dashboard of tracked items and run history, plus a manual "Run cycle now" button
+
+### Inspector role & evidence pipeline
+- **Documents** — farmers, inspectors, and scientists can all upload evidence (vaccination certificates, lab results, compliance filings) for a farm at any time, not just once at registration. Uploaded PDFs/images are read with real local text extraction (`pdf-parse` for text-layer PDFs, `tesseract.js` OCR for photos/scans — no external API), and when an OpenRouter key is configured, the AI summarizes the document and, for categories that map to a sub-index, proposes a value change with its rationale for a scientist to approve or dismiss — never applied automatically
+- **Inspections** — an inspector role with an open queue: pick any farm, work through a fixed 7-item biosecurity checklist (perimeter control, disinfection stations, PPE, mortality management, pest control, visitor/vehicle logs, water protection), attach evidence photos, and log corrective actions with due dates for anything failed. Farmers see their own farm's full inspection history and evidence
+- **Live activity feed** — a Server-Sent Events stream in the Topbar (scientists/inspectors) surfaces a farmer's upload or an inspector's submitted checklist the moment it happens, without a page refresh
 
 ### Farmer accounts & self-service
 - **Farmer registration** — signup with a bcrypt-hashed password, farm selection, and a required ownership-verification step:
@@ -123,7 +128,7 @@ Everything else (loop intervals, reminder windows, seed account credentials) has
 | `npm run db:up` | Starts a local Postgres container via Docker Compose |
 | `npm run db:down` | Stops the local Postgres container |
 | `npm run db:migrate` | Applies any pending SQL migrations to `DATABASE_URL` (also runs automatically before `npm start`) |
-| `node server/seedTestAccounts.js` | (Re-)creates the `admin`/`admin` and `farmer`/`farmer` test accounts |
+| `node server/seedTestAccounts.js` | (Re-)creates the `admin`/`admin` (scientist), `inspector`/`inspector`, and `farmer`/`farmer` test accounts |
 
 ## Deployment
 
@@ -158,5 +163,8 @@ Repo variables to set (Settings → Secrets and variables → Actions → Variab
 - `server/automation.js` / `server/farmerLoop.js` — the two autonomous background loops
 - `server/auth.js` — JWT sessions and role-gating middleware
 - `server/gcs.js` — Google Cloud Storage upload / signed-URL / delete helpers
-- `server/staffStore.js`, `server/farmerStore.js`, `server/store.js` — the three persisted-data stores (staff accounts, farmer accounts, automation records/history/runs), all backed by Postgres
+- `server/staffStore.js`, `server/farmerStore.js`, `server/store.js` — the three original persisted-data stores (staff accounts, farmer accounts, automation records/history/runs), all backed by Postgres
+- `server/documentStore.js`, `server/inspectionStore.js`, `server/mriConfigStore.js`, `server/activityStore.js` — the evidence-pipeline stores (uploaded documents, inspection checklists, MRI methodology history, the live activity feed)
+- `server/ocr.js` — local text extraction from uploaded documents (`pdf-parse` / `tesseract.js`)
+- `server/mriCompute.js` — resolves a farm's current sub-index readings (document-sourced or registry-default) and the composite score
 - `server/db/` — the Postgres connection pool (`pool.js`), the migration runner (`migrate.js`), and hand-written SQL migrations (`migrations/`)
