@@ -162,7 +162,7 @@ function InspectionList({ inspections, loading }) {
               <ul style={{ fontSize: 12.5, color: 'var(--gray-dark)', paddingLeft: 18, lineHeight: 1.6 }}>
                 {insp.correctiveActions.map((a, i) => (
                   <li key={i}>
-                    {a.action} {a.dueDate ? `— due ${a.dueDate}` : ''} {a.resolved ? '(resolved)' : ''}
+                    {a.action} {a.dueDate ? `(due ${a.dueDate})` : ''} {a.resolved ? '(resolved)' : ''}
                   </li>
                 ))}
               </ul>

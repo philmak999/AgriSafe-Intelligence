@@ -71,9 +71,9 @@ node server/seedTestAccounts.js
 - **Compliance Reports** — regulatory filing status (FSMA 204, CFIA Part 11, USDA FSIS)
 
 ### Scientist-only tools
-- **MRI Model Config** — per-farm sub-index readings (vaccination, antibiotics) are sourced from scientist-approved uploaded evidence, not hand-set; herd density and outbreak proximity stay regional/registry-derived. The scoring **methodology** (weights) is edited separately, requires a written reason, and every change is kept in a permanent, attributed history
+- **MRI Model Config** — vaccination and antibiotic readings come from approved uploaded documents. Herd density and outbreak proximity still come from the farm registry. Weights are edited separately and logged with a reason
 - **Pathogen Trends** — monthly detection trends and frequency breakdown by pathogen
-- **Risk Investigation Agent** — click "Investigate →" on any flagged farm to run an OpenRouter-powered, tool-calling AI agent that pulls the herd record, risk timeline, inspection history, compliance status, and now also real uploaded documents and inspector-submitted checklists for that farm, then returns a structured summary, findings, and recommendation
+- **Risk Investigation Agent** — click "Investigate →" on any flagged farm to run a tool-calling AI agent (via OpenRouter) that pulls the herd record, risk timeline, inspection history, compliance status, uploaded documents, and inspection checklists, then returns a summary, findings, and a recommendation
 - **Automation Log** — a fully autonomous loop, running independently of any user session, that:
   - **Sources** newly-flagged (HIGH/MED risk) farms from live risk data
   - **Follows up** by running the Investigation Agent and emailing the findings to an ops inbox
@@ -81,9 +81,9 @@ node server/seedTestAccounts.js
   - **Reports** a live dashboard of tracked items and run history, plus a manual "Run cycle now" button
 
 ### Inspector role & evidence pipeline
-- **Documents** — farmers, inspectors, and scientists can all upload evidence (vaccination certificates, lab results, compliance filings) for a farm at any time, not just once at registration. Uploaded PDFs/images are read with real local text extraction (`pdf-parse` for text-layer PDFs, `tesseract.js` OCR for photos/scans — no external API), and when an OpenRouter key is configured, the AI summarizes the document and, for categories that map to a sub-index, proposes a value change with its rationale for a scientist to approve or dismiss — never applied automatically
-- **Inspections** — an inspector role with an open queue: pick any farm, work through a fixed 7-item biosecurity checklist (perimeter control, disinfection stations, PPE, mortality management, pest control, visitor/vehicle logs, water protection), attach evidence photos, and log corrective actions with due dates for anything failed. Farmers see their own farm's full inspection history and evidence
-- **Live activity feed** — a Server-Sent Events stream in the Topbar (scientists/inspectors) surfaces a farmer's upload or an inspector's submitted checklist the moment it happens, without a page refresh
+- **Documents** — farmers, inspectors, and scientists can upload evidence (vaccination certificates, lab results, compliance filings) for a farm any time, not only at registration. PDFs and images get read locally (`pdf-parse`, `tesseract.js` OCR, no external API). With an OpenRouter key set, the AI also summarizes the document and can propose an MRI value change, which a scientist has to approve
+- **Inspections** — inspectors can check any farm against a fixed 7-item biosecurity checklist (perimeter control, disinfection stations, PPE, mortality management, pest control, visitor/vehicle logs, water protection), attach photos, and log corrective actions with due dates. Farmers can see their own farm's inspection history
+- **Live activity feed** — scientists and inspectors get a live feed in the Topbar (via Server-Sent Events) showing new uploads and submitted inspections as they happen
 
 ### Farmer accounts & self-service
 - **Farmer registration** — signup with a bcrypt-hashed password, farm selection, and a required ownership-verification step:
@@ -97,7 +97,7 @@ node server/seedTestAccounts.js
 - **Remove registration** — staff can revoke a farmer account at any time, freeing the farm to be re-registered
 
 ### Access control & data scoping
-- Real authentication — hashed passwords, JWT session cookies, server-enforced role checks, not just hidden nav items
+- Real authentication — hashed passwords, JWT session cookies, and role checks enforced on the server, not just hidden nav items in the UI
 - Farmers only ever see their own farm's details across every page; a **corridor percentile** stat lets them compare performance without exposing any other farm's data
 - Every internal ops tool (Investigation Agent, Automation Log, Farmer Approvals) returns a real 403 if a farmer session hits it directly
 

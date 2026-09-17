@@ -32,6 +32,11 @@ export default function Dashboard() {
 
   return (
     <>
+      <p style={{ fontSize: 12, color: 'var(--gray)', margin: '-4px 0 14px' }}>
+        MRI is the Biosecurity Index: a 0–100 score built from vaccination coverage, antibiotic
+        compliance, herd density, and outbreak proximity. Scientists set how each factor is
+        weighted on MRI Model Config.
+      </p>
       <MetricCards mode={isFarmer ? 'farmer' : 'scientist'} farmName={user?.farmName} />
       {isFarmer ? <FarmerView farmName={user.farmName} /> : <InspectorView />}
     </>
