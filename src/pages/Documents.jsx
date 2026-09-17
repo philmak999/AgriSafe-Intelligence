@@ -87,9 +87,8 @@ export default function Documents() {
       <div className="card" style={{ maxWidth: 520 }}>
         <div className="card-title">Upload a document</div>
         <p style={{ fontSize: '12.5px', color: 'var(--gray-dark)', lineHeight: 1.5, marginBottom: 14 }}>
-          Vaccination certificates and lab results are read automatically and, when the document
-          supports it, the AI proposes an updated MRI sub-index value for a scientist to review —
-          it’s never applied without sign-off.
+          Vaccination certificates and lab results get read automatically. If the AI can pull a
+          number from one, it suggests an MRI update, but a scientist has to approve it first.
         </p>
         <form onSubmit={handleUpload} className="register-form">
           {isStaff && (

@@ -64,7 +64,7 @@ export default function MRIModelConfig() {
       return;
     }
     if (!reason.trim()) {
-      setSaveError('A reason is required — this becomes a permanent, attributed record.');
+      setSaveError('A reason is required.');
       return;
     }
     setSaving(true);
@@ -102,8 +102,8 @@ export default function MRIModelConfig() {
       <div className="card">
         <div className="card-title">Farm-Specific Sub-Index Readings</div>
         <p style={{ fontSize: '12.5px', color: 'var(--gray-dark)', lineHeight: 1.5, marginBottom: 14 }}>
-          Vaccination and antibiotic readings come from a scientist-approved uploaded document for
-          this farm, not a hand-set value — upload evidence on the Documents page to update them.
+          Vaccination and antibiotic compliance come from documents uploaded on the Documents page.
+          A scientist has to approve them before they count toward MRI.
         </p>
         <label className="register-field" style={{ maxWidth: 320, marginBottom: 14 }}>
           <span>Farm</span>
@@ -130,10 +130,10 @@ export default function MRIModelConfig() {
                   </div>
                   <p style={{ fontSize: 11, color: 'var(--gray)', marginTop: 2 }}>
                     {s.source
-                      ? `Sourced from "${s.source.originalName}", uploaded ${new Date(s.source.uploadedAt).toLocaleDateString()}${s.source.rationale ? ` — ${s.source.rationale}` : ''}`
+                      ? `From "${s.source.originalName}", uploaded ${new Date(s.source.uploadedAt).toLocaleDateString()}.${s.source.rationale ? ` ${s.source.rationale}` : ''}`
                       : DOCUMENT_SOURCED_KEYS.has(s.key)
-                        ? 'No scientist-approved document on file yet — showing registry default'
-                        : 'Regional data, derived from the farm registry — not editable per document'}
+                        ? 'No approved document yet. Showing the registry default.'
+                        : 'From the farm registry.'}
                   </p>
                 </div>
               ))}
@@ -146,8 +146,8 @@ export default function MRIModelConfig() {
       <div className="card">
         <div className="card-title">Scoring Methodology</div>
         <p style={{ fontSize: '12.5px', color: 'var(--gray-dark)', lineHeight: 1.5, marginBottom: 14 }}>
-          These weights apply corridor-wide, not per farm — changing them is a governance decision,
-          so every change requires a written reason and is kept in a permanent, attributed history below.
+          These weights apply to every farm in the corridor. Changing them requires a reason,
+          and every change is logged below.
         </p>
         {draftWeights && farmData && (
           <form onSubmit={handleSaveWeights} className="config-panel">
@@ -190,7 +190,7 @@ export default function MRIModelConfig() {
         </div>
         {history.length === 0 ? (
           <div style={{ padding: '14px 4px', color: 'var(--gray)', fontSize: '13px' }}>
-            No changes recorded yet — showing default weights.
+            No changes yet. These are the default weights.
           </div>
         ) : (
           <table className="inspector-table">
