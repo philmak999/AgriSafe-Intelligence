@@ -4,8 +4,8 @@ import { API_BASE } from '../apiBase';
 import { herds } from '../data/mockData';
 
 const CATEGORY_LABELS = {
-  vaccination_certificate: 'Vaccination certificate',
-  lab_result: 'Lab result',
+  vaccination_certificate: 'Vaccination',
+  lab_result: 'Lab results',
   compliance_filing: 'Compliance filing',
   inspection_evidence: 'Inspection evidence',
   other: 'Other',
@@ -87,15 +87,14 @@ export default function Documents() {
       <div className="card" style={{ maxWidth: 520 }}>
         <div className="card-title">Upload a document</div>
         <p style={{ fontSize: '12.5px', color: 'var(--gray-dark)', lineHeight: 1.5, marginBottom: 14 }}>
-          Vaccination certificates and lab results get read automatically. If the AI can pull a
-          number from one, it suggests an MRI update, but a scientist has to approve it first.
+          Compliance, biosecurity and other legal documentation. AI will summarize the contents and escalate any relevant updates to scientists or inspectors for review.
         </p>
         <form onSubmit={handleUpload} className="register-form">
           {isStaff && (
             <label className="register-field">
-              <span>Farm</span>
+              <span>Farm Name</span>
               <select required value={farmName} onChange={(e) => setFarmName(e.target.value)}>
-                <option value="" disabled>Select a farm…</option>
+                <option value="" disabled>Select a farm</option>
                 {herds.map((h) => (
                   <option key={h.id} value={h.farm}>{h.farm}</option>
                 ))}
@@ -117,16 +116,16 @@ export default function Documents() {
             <input
               value={form.note}
               onChange={(e) => setForm({ ...form, note: e.target.value })}
-              placeholder="e.g. BVD vaccination, administered Aug 2"
+              placeholder="Notes will be viewable by inspectors and scientists"
             />
           </label>
 
           <label className="register-field">
-            <span>File (PDF, PNG, JPG, or WEBP)</span>
+            <span>File (PDF, DOC/X, PNG, JPG/JPEG, or WEBP)</span>
             <input
               required
               type="file"
-              accept=".pdf,.png,.jpg,.jpeg,.webp"
+              accept=".pdf,.png,.doc,.docx,.jpg,.jpeg,.webp"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
             />
           </label>
