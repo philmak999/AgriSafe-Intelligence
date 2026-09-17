@@ -1,6 +1,6 @@
 # AgriSafe Intelligence
 
-**AI-assisted biosecurity risk monitoring for the Ontario–New York agricultural corridor.**
+**Farm biosecurity risk management dashboard using AI solutions**
 
 [![CI](https://github.com/philmak999/AgriSafe-Intelligence/actions/workflows/ci.yml/badge.svg)](https://github.com/philmak999/AgriSafe-Intelligence/actions/workflows/ci.yml)
 [![Deploy](https://github.com/philmak999/AgriSafe-Intelligence/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/philmak999/AgriSafe-Intelligence/actions/workflows/deploy-pages.yml)
