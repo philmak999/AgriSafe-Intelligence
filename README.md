@@ -71,7 +71,7 @@ node server/seedTestAccounts.js
 - **Compliance Reports** — regulatory filing status (FSMA 204, CFIA Part 11, USDA FSIS)
 
 ### Scientist-only tools
-- **MRI Model Config** — vaccination and antibiotic readings come from approved uploaded documents. Herd density and outbreak proximity still come from the farm registry. Weights are edited separately and logged with a reason
+- **MRI Model Config** — vaccination and antibiotic sub-index values are sourced from scientist-approved uploaded documents; herd density and outbreak proximity remain derived from the farm registry. Weight adjustments require a written justification and are versioned in an audit history
 - **Pathogen Trends** — monthly detection trends and frequency breakdown by pathogen
 - **Risk Investigation Agent** — click "Investigate →" on any flagged farm to run a tool-calling AI agent (via OpenRouter) that pulls the herd record, risk timeline, inspection history, compliance status, uploaded documents, and inspection checklists, then returns a summary, findings, and a recommendation
 - **Automation Log** — a fully autonomous loop, running independently of any user session, that:
@@ -81,9 +81,9 @@ node server/seedTestAccounts.js
   - **Reports** a live dashboard of tracked items and run history, plus a manual "Run cycle now" button
 
 ### Inspector role & evidence pipeline
-- **Documents** — farmers, inspectors, and scientists can upload evidence (vaccination certificates, lab results, compliance filings) for a farm any time, not only at registration. PDFs and images get read locally (`pdf-parse`, `tesseract.js` OCR, no external API). With an OpenRouter key set, the AI also summarizes the document and can propose an MRI value change, which a scientist has to approve
-- **Inspections** — inspectors can check any farm against a fixed 7-item biosecurity checklist (perimeter control, disinfection stations, PPE, mortality management, pest control, visitor/vehicle logs, water protection), attach photos, and log corrective actions with due dates. Farmers can see their own farm's inspection history
-- **Live activity feed** — scientists and inspectors get a live feed in the Topbar (via Server-Sent Events) showing new uploads and submitted inspections as they happen
+- **Documents** — supports ad hoc evidence uploads (vaccination certificates, lab results, compliance filings) from any role, not limited to the registration flow. Uploaded PDFs and images undergo local text extraction (`pdf-parse`, `tesseract.js` OCR; no external API dependency). When `OPENROUTER_API_KEY` is configured, the agent also generates a document summary and, where applicable, proposes an MRI sub-index adjustment pending scientist approval
+- **Inspections** — inspectors log a biosecurity assessment for any farm against a fixed 7-item checklist (perimeter control, disinfection stations, PPE compliance, mortality management, pest control, visitor/vehicle logs, water source protection), attaching evidence photos and corrective actions with due dates. Farmers have read access to their own farm's inspection history
+- **Live activity feed** — scientists and inspectors receive real-time updates via a Server-Sent Events stream in the Topbar, surfacing new document uploads and inspection submissions without a page reload
 
 ### Farmer accounts & self-service
 - **Farmer registration** — signup with a bcrypt-hashed password, farm selection, and a required ownership-verification step:
