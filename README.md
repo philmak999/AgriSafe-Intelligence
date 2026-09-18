@@ -13,8 +13,7 @@ Livestock disease outbreaks move fast and get expensive quickly. A missed inspec
 |---|---|
 | Frontend | React 19, Vite, React Router, Chart.js |
 | Backend | Node.js, Express |
-| Database | PostgreSQL (Cloud SQL in production, Docker locally) |
-| File storage | Google Cloud Storage (farmer ownership documents) |
+| Database | PostgreSQL (Cloud SQL in production, Docker locally); also stores uploaded document bytes |
 | AI | Nex-N2.5 Mini via OpenRouter (tool-calling risk-investigation agent) |
 | Email | Nodemailer over SMTP |
 | Auth | JWT session cookies, bcrypt password hashing |
@@ -29,7 +28,6 @@ flowchart LR
     Browser -->|HTTPS| Pages["GitHub Pages<br/>React frontend"]
     Pages -->|REST API| API["Render<br/>Express backend"]
     API --> PG[("PostgreSQL<br/>Cloud SQL")]
-    API --> GCS[("Google Cloud Storage<br/>ownership documents")]
     API --> OR["OpenRouter<br/>Investigation Agent"]
     API --> SMTP["SMTP<br/>email notifications"]
 ```
@@ -40,7 +38,7 @@ The frontend and backend deploy independently. GitHub Pages can't run a server, 
 
 ```bash
 npm install
-cp .env.example .env      # then fill in DATABASE_URL, GCS_*, OPENROUTER_API_KEY and SMTP_* (see below)
+cp .env.example .env      # then fill in DATABASE_URL, OPENROUTER_API_KEY and SMTP_* (see below)
 npm run db:up              # starts a local Postgres in Docker
 npm run db:migrate         # applies the schema
 npm run dev                # runs the frontend (Vite) + API server together
@@ -88,7 +86,7 @@ node server/seedTestAccounts.js
 ### Farmer accounts & self-service
 - **Farmer registration**: signup with a bcrypt-hashed password, farm selection, and a required ownership-verification step:
   - **Herd ID match**: must match the exact ID on file for the selected farm
-  - **Ownership document upload**: a deed, lease, government Premises ID letter, or inspection report (PDF/PNG/JPG/WEBP), stored in Google Cloud Storage
+  - **Ownership document upload**: a deed, lease, government Premises ID letter, or inspection report (PDF/PNG/JPG/WEBP), stored directly in Postgres
   - Account stays inactive until an AgriSafe staff member reviews and approves it
 - **Farmer Approvals** (staff-only): review queue showing each pending registration, a signed link to the uploaded document, and Approve/Reject actions with email notification either way
 - **Farmer notification loop**: a second autonomous daily loop, independent of the risk-automation one:
@@ -106,7 +104,6 @@ node server/seedTestAccounts.js
 See `.env.example` for the full list with explanations. At minimum for local dev:
 
 - `DATABASE_URL`: Postgres connection string; the default value matches `npm run db:up`'s local Docker container as-is
-- `GCS_PROJECT_ID` / `GCS_BUCKET_NAME` / `GCS_KEY_JSON_BASE64`: a Google Cloud Storage bucket and service-account key for storing farmer ownership documents
 - `OPENROUTER_API_KEY`: key from [openrouter.ai/keys](https://openrouter.ai/keys), powers the Investigation Agent
 - `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_PASS`: needed for real emails (reminders, weekly reports, approval notices); Gmail App Passwords work well here
 - `JWT_SECRET`: random string signing login sessions; generate one with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
@@ -138,10 +135,10 @@ The frontend and backend are two independently deployed services with no shared 
 Built and published by [`deploy-pages.yml`](.github/workflows/deploy-pages.yml) on every push to `main`. `VITE_API_BASE_URL` is baked into the static build at compile time (via a GitHub Actions repo variable) so the deployed frontend knows where to reach the API. GitHub Pages serves static files only and can't proxy requests itself.
 
 ### Backend: Render
-The Express API runs as a Render web service, auto-deployed from this repo. [`render.yaml`](render.yaml) is a Render Blueprint: infrastructure as code for the service's build/start commands, health check path, and environment variable slots. Secrets (`DATABASE_URL`, `GCS_*`, `OPENROUTER_API_KEY`, `SMTP_*`, `JWT_SECRET`) are entered in the Render dashboard, never committed. On every deploy, the `prestart` npm hook applies any pending Postgres migrations before the server starts, and Render polls `/api/health` (which checks both process liveness and DB connectivity) for zero-downtime rollouts.
+The Express API runs as a Render web service, auto-deployed from this repo. [`render.yaml`](render.yaml) is a Render Blueprint: infrastructure as code for the service's build/start commands, health check path, and environment variable slots. Secrets (`DATABASE_URL`, `OPENROUTER_API_KEY`, `SMTP_*`, `JWT_SECRET`) are entered in the Render dashboard, never committed. On every deploy, the `prestart` npm hook applies any pending Postgres migrations before the server starts, and Render polls `/api/health` (which checks both process liveness and DB connectivity) for zero-downtime rollouts.
 
-### Database & file storage: Google Cloud
-Production data lives in a Cloud SQL for PostgreSQL instance (reached over its public IP with SSL enforced) and farmer ownership documents live in a Google Cloud Storage bucket, served back to staff via short-lived signed URLs rather than public links. Locally, the same schema runs against a disposable Postgres container (`npm run db:up`) via the same SQL migrations in [`server/db/migrations/`](server/db/migrations/), and uploads go to the same GCS bucket.
+### Database: Google Cloud
+Production data lives in a Cloud SQL for PostgreSQL instance, reached over its public IP with SSL enforced. Uploaded files (farmer ownership documents, evidence uploads) are stored as bytea columns in the same database rather than a separate object storage service. Serving them back requires no third-party credentials. Locally, the same schema runs against a disposable Postgres container (`npm run db:up`) via the same SQL migrations in [`server/db/migrations/`](server/db/migrations/).
 
 ## CI/CD
 
@@ -162,7 +159,6 @@ Repo variables to set (Settings → Secrets and variables → Actions → Variab
 - `server/agent.js`: the AI risk-investigation agent (OpenRouter tool-calling loop)
 - `server/automation.js` / `server/farmerLoop.js`: the two autonomous background loops
 - `server/auth.js`: JWT sessions and role-gating middleware
-- `server/gcs.js`: Google Cloud Storage upload / signed-URL / delete helpers
 - `server/staffStore.js`, `server/farmerStore.js`, `server/store.js`: the three original persisted-data stores (staff accounts, farmer accounts, automation records/history/runs), all backed by Postgres
 - `server/documentStore.js`, `server/inspectionStore.js`, `server/mriConfigStore.js`, `server/activityStore.js`: the evidence-pipeline stores (uploaded documents, inspection checklists, MRI methodology history, the live activity feed)
 - `server/ocr.js`: local text extraction from uploaded documents (`pdf-parse` / `tesseract.js`)

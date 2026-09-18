@@ -29,7 +29,8 @@ function makeFarmer(overrides = {}) {
     email: 'farmer@example.com',
     farmName: `Farm ${username}`,
     farmId: 'TEST-0001',
-    documentPath: 'uploads/fake-key.pdf',
+    documentData: Buffer.from('fake-pdf-bytes'),
+    documentMimetype: 'application/pdf',
     documentOriginalName: 'deed.pdf',
     ...overrides,
   });

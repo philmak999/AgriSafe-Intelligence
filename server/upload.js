@@ -8,9 +8,9 @@ const fileFilter = (req, file, cb) => {
   cb(null, true);
 };
 
-// Buffered in memory, not written to disk — the route handler uploads the
-// buffer to GCS only after every validation passes, so a rejected upload
-// never leaves an orphaned file anywhere to clean up.
+// Buffered in memory, not written to disk — the route handler saves the
+// buffer to the database only after every validation passes, so a rejected
+// upload never leaves an orphaned file anywhere to clean up.
 export const uploadOwnershipDoc = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB

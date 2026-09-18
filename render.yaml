@@ -28,12 +28,6 @@ services:
         sync: false
       - key: DATABASE_SSL
         value: true
-      - key: GCS_PROJECT_ID
-        sync: false
-      - key: GCS_BUCKET_NAME
-        sync: false
-      - key: GCS_KEY_JSON_BASE64
-        sync: false
       - key: OPENROUTER_API_KEY
         sync: false
       - key: OPENROUTER_MODEL
