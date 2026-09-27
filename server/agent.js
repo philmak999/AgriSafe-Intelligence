@@ -5,7 +5,11 @@ import { toolDefinitions, toolImplementations } from './tools.js';
 // directly — its API is OpenAI-request-shaped, so the official `openai`
 // package works unmodified by just pointing baseURL at OpenRouter.
 const MODEL = process.env.OPENROUTER_MODEL || 'nvidia/nemotron-3.5-lightning:free';
-const MAX_ITERATIONS = 6;
+// 6 tools are available; a model that calls one tool per turn instead of
+// batching needs up to 6 tool-call iterations plus one more to synthesize
+// the final report. Verified against the current default model: it took 7
+// tool calls (including one redundant repeat) plus a final turn, 8 total.
+const MAX_ITERATIONS = 10;
 
 // Constructed lazily so the server can boot even before OPENROUTER_API_KEY
 // is set — the route handler checks for the key and returns a clear error first.
@@ -24,6 +28,24 @@ function getClient() {
   return client;
 }
 
+// Free-tier models occasionally return a response with no `choices` at all
+// instead of throwing — observed directly while testing, a transient
+// upstream hiccup rather than a real failure. Retries a couple of times
+// before giving up with a message that's actually useful, instead of the
+// raw "Cannot read properties of undefined" crash that follows from reading
+// completion.choices[0] directly.
+const MAX_COMPLETION_RETRIES = 2;
+async function createChatCompletion(params) {
+  for (let attempt = 0; attempt <= MAX_COMPLETION_RETRIES; attempt++) {
+    const completion = await getClient().chat.completions.create(params);
+    if (completion?.choices?.[0]?.message) return completion;
+    if (attempt < MAX_COMPLETION_RETRIES) {
+      await new Promise((resolve) => setTimeout(resolve, 1500 * (attempt + 1)));
+    }
+  }
+  throw new Error('The AI model returned an empty response after several attempts — it may be temporarily overloaded. Try again in a minute.');
+}
+
 const SYSTEM_PROMPT = `You are the AgriSafe Intelligence Risk Investigation Agent, an assistant for biosecurity inspectors and producers monitoring farms and processing facilities across the Ontario + NYS corridor.
 
 Given a farm or facility name, investigate its current biosecurity risk by calling the available tools to gather:
@@ -34,7 +56,7 @@ Given a farm or facility name, investigate its current biosecurity risk by calli
 - real uploaded evidence documents for the farm (vaccination certificates, lab results) and any AI-suggested score changes awaiting review
 - real inspector-submitted biosecurity checklist inspections for the farm (perimeter control, PPE, pest control, etc.), including any failed items and corrective actions
 
-Call tools as needed (a name may only match some of them — that's fine, note what's missing). Once you have enough information, respond with a plain-text investigation report using exactly this structure, with no markdown formatting (no asterisks, no headers):
+Call tools as needed (a name may only match some of them — that's fine, note what's missing). Call each tool at most once per farm; don't repeat a call you've already made. Once you have enough information, respond with a plain-text investigation report using exactly this structure, with no markdown formatting (no asterisks, no headers):
 
 SUMMARY:
 One or two sentences on the current risk posture.
@@ -86,7 +108,7 @@ export async function investigate(farmName) {
   const steps = [];
 
   for (let i = 0; i < MAX_ITERATIONS; i++) {
-    const completion = await getClient().chat.completions.create({
+    const completion = await createChatCompletion({
       model: MODEL,
       messages,
       tools: toolDefinitions,
@@ -181,7 +203,7 @@ export async function summarizeDocumentForRisk({ extractedText, category, farmNa
     return { summary: 'No readable text could be extracted from this document.', subIndexKey: null, suggestedValue: null, rationale: null };
   }
 
-  const completion = await getClient().chat.completions.create({
+  const completion = await createChatCompletion({
     model: MODEL,
     messages: [
       { role: 'system', content: DOCUMENT_SUMMARY_PROMPT },
