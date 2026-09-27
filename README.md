@@ -46,7 +46,7 @@ npm run db:migrate         # applies the schema
 npm run dev                # runs the frontend (Vite) + API server together
 ```
 
-Open [http://localhost:5173](http://localhost:5173), or try the deployed version: **[philmak999.github.io/AgriSafe-Intelligence](https://philmak999.github.io/AgriSafe-Intelligence/)**
+Open [http://localhost:5173](http://localhost:5173), or try the deployed version: **[philmak999.github.io/AgriSafe-Intelligence](https://philmak999.github.io/AgriSafe-Intelligence/login)**
 
 ### Test accounts
 
