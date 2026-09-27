@@ -28,6 +28,24 @@ function getClient() {
   return client;
 }
 
+// Free-tier models occasionally return a response with no `choices` at all
+// instead of throwing — observed directly while testing, a transient
+// upstream hiccup rather than a real failure. Retries a couple of times
+// before giving up with a message that's actually useful, instead of the
+// raw "Cannot read properties of undefined" crash that follows from reading
+// completion.choices[0] directly.
+const MAX_COMPLETION_RETRIES = 2;
+async function createChatCompletion(params) {
+  for (let attempt = 0; attempt <= MAX_COMPLETION_RETRIES; attempt++) {
+    const completion = await getClient().chat.completions.create(params);
+    if (completion?.choices?.[0]?.message) return completion;
+    if (attempt < MAX_COMPLETION_RETRIES) {
+      await new Promise((resolve) => setTimeout(resolve, 1500 * (attempt + 1)));
+    }
+  }
+  throw new Error('The AI model returned an empty response after several attempts — it may be temporarily overloaded. Try again in a minute.');
+}
+
 const SYSTEM_PROMPT = `You are the AgriSafe Intelligence Risk Investigation Agent, an assistant for biosecurity inspectors and producers monitoring farms and processing facilities across the Ontario + NYS corridor.
 
 Given a farm or facility name, investigate its current biosecurity risk by calling the available tools to gather:
@@ -90,7 +108,7 @@ export async function investigate(farmName) {
   const steps = [];
 
   for (let i = 0; i < MAX_ITERATIONS; i++) {
-    const completion = await getClient().chat.completions.create({
+    const completion = await createChatCompletion({
       model: MODEL,
       messages,
       tools: toolDefinitions,
@@ -185,7 +203,7 @@ export async function summarizeDocumentForRisk({ extractedText, category, farmNa
     return { summary: 'No readable text could be extracted from this document.', subIndexKey: null, suggestedValue: null, rationale: null };
   }
 
-  const completion = await getClient().chat.completions.create({
+  const completion = await createChatCompletion({
     model: MODEL,
     messages: [
       { role: 'system', content: DOCUMENT_SUMMARY_PROMPT },
