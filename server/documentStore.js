@@ -15,13 +15,21 @@ export const CATEGORY_SUBINDEX_MAP = {
   lab_result: 'antibiotic',
 };
 
+// Every column except file_data (bytea, up to 10MB) — list/lookup queries
+// use this so a table of documents doesn't pull every file's bytes just to
+// render. getDocumentFile() is the only function that selects file_data.
+const LIST_COLUMNS = `
+  id, farm_name, category, original_name, mimetype, uploaded_by_id, uploaded_by_name,
+  uploaded_by_role, note, extracted_text, ai_summary, ai_processed_at, suggested_subindex_key,
+  suggested_subindex_value, suggestion_rationale, suggestion_status, inspection_id, created_at
+`;
+
 function toDocument(row) {
   if (!row) return null;
   return {
     id: row.id,
     farmName: row.farm_name,
     category: row.category,
-    gcsKey: row.gcs_key,
     originalName: row.original_name,
     mimetype: row.mimetype,
     uploadedById: row.uploaded_by_id,
@@ -43,7 +51,7 @@ function toDocument(row) {
 export async function createDocument({
   farmName,
   category,
-  gcsKey,
+  fileData,
   originalName,
   mimetype,
   uploadedById,
@@ -56,10 +64,10 @@ export async function createDocument({
 
   const { rows } = await pool.query(
     `INSERT INTO documents
-       (id, farm_name, category, gcs_key, original_name, mimetype, uploaded_by_id, uploaded_by_name, uploaded_by_role, note, inspection_id)
+       (id, farm_name, category, file_data, original_name, mimetype, uploaded_by_id, uploaded_by_name, uploaded_by_role, note, inspection_id)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-     RETURNING *`,
-    [id, farmName, category, gcsKey, originalName, mimetype, uploadedById, uploadedByName, uploadedByRole, note || null, inspectionId || null]
+     RETURNING ${LIST_COLUMNS}`,
+    [id, farmName, category, fileData, originalName, mimetype, uploadedById, uploadedByName, uploadedByRole, note || null, inspectionId || null]
   );
 
   return toDocument(rows[0]);
@@ -73,7 +81,7 @@ export async function attachAiResult(id, { extractedText, summary, subIndexKey, 
          suggested_subindex_key = $4, suggested_subindex_value = $5, suggestion_rationale = $6,
          suggestion_status = $7
      WHERE id = $1
-     RETURNING *`,
+     RETURNING ${LIST_COLUMNS}`,
     [id, extractedText || null, summary || null, subIndexKey || null, suggestedValue ?? null, rationale || null, status]
   );
   return toDocument(rows[0]);
@@ -81,7 +89,7 @@ export async function attachAiResult(id, { extractedText, summary, subIndexKey, 
 
 export async function setSuggestionStatus(id, status) {
   const { rows } = await pool.query(
-    `UPDATE documents SET suggestion_status = $2 WHERE id = $1 RETURNING *`,
+    `UPDATE documents SET suggestion_status = $2 WHERE id = $1 RETURNING ${LIST_COLUMNS}`,
     [id, status]
   );
   return toDocument(rows[0]);
@@ -89,20 +97,32 @@ export async function setSuggestionStatus(id, status) {
 
 export async function getDocumentsByFarm(farmName) {
   const { rows } = await pool.query(
-    'SELECT * FROM documents WHERE farm_name = $1 ORDER BY created_at DESC',
+    `SELECT ${LIST_COLUMNS} FROM documents WHERE farm_name = $1 ORDER BY created_at DESC`,
     [farmName]
   );
   return rows.map(toDocument);
 }
 
 export async function getAllDocuments() {
-  const { rows } = await pool.query('SELECT * FROM documents ORDER BY created_at DESC');
+  const { rows } = await pool.query(`SELECT ${LIST_COLUMNS} FROM documents ORDER BY created_at DESC`);
   return rows.map(toDocument);
 }
 
 export async function getDocumentById(id) {
-  const { rows } = await pool.query('SELECT * FROM documents WHERE id = $1', [id]);
+  const { rows } = await pool.query(`SELECT ${LIST_COLUMNS} FROM documents WHERE id = $1`, [id]);
   return toDocument(rows[0]);
+}
+
+// Only function that reads the file bytes back out — used by the one route
+// that actually serves the document.
+export async function getDocumentFile(id) {
+  const { rows } = await pool.query(
+    'SELECT file_data, mimetype, original_name FROM documents WHERE id = $1',
+    [id]
+  );
+  const row = rows[0];
+  if (!row || !row.file_data) return null;
+  return { data: row.file_data, mimetype: row.mimetype, originalName: row.original_name };
 }
 
 // Most recent *approved* AI suggestion per farm+sub-index — this is what
@@ -110,7 +130,7 @@ export async function getDocumentById(id) {
 // instead of a hand-set slider.
 export async function getLatestApprovedSuggestion(farmName, subIndexKey) {
   const { rows } = await pool.query(
-    `SELECT * FROM documents
+    `SELECT ${LIST_COLUMNS} FROM documents
      WHERE farm_name = $1 AND suggested_subindex_key = $2 AND suggestion_status = 'approved'
      ORDER BY created_at DESC LIMIT 1`,
     [farmName, subIndexKey]

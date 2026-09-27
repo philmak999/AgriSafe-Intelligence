@@ -30,7 +30,8 @@ async function seedFarmer() {
     email: 'farmer-test@example.com',
     farmName: TEST_FARM.farmName,
     farmId: TEST_FARM.farmId,
-    documentPath: null,
+    documentData: null,
+    documentMimetype: null,
     documentOriginalName: 'test-account-no-document',
   });
   await approveFarmer(farmer.id); // test account — skip the normal staff-review step

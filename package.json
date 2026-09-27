@@ -19,7 +19,6 @@
     "db:migrate": "node server/db/migrate.js"
   },
   "dependencies": {
-    "@google-cloud/storage": "^8.0.1",
     "bcryptjs": "^3.0.3",
     "chart.js": "^4.5.1",
     "cookie-parser": "^1.4.7",

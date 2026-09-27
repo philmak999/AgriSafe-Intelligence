@@ -16,7 +16,6 @@ import { getStaffByUsername } from './staffStore.js';
 import { seedTestAccounts } from './seedTestAccounts.js';
 import { uploadOwnershipDoc, uploadDocument, uploadEvidence } from './upload.js';
 import { pool } from './db/pool.js';
-import * as gcs from './gcs.js';
 import { extractText } from './ocr.js';
 import { activityBus } from './activityBus.js';
 import { logActivity, getRecentActivity } from './activityStore.js';
@@ -29,6 +28,7 @@ import {
   getDocumentsByFarm,
   getAllDocuments,
   getDocumentById,
+  getDocumentFile,
 } from './documentStore.js';
 import { CHECKLIST_ITEMS, createInspection, getInspectionsByFarm, getAllInspections } from './inspectionStore.js';
 import { DEFAULT_ALERT_THRESHOLD, getActiveConfig, saveConfig, getConfigHistory } from './mriConfigStore.js';
@@ -36,9 +36,9 @@ import { FACTORS, getFarmSubIndexes, computeComposite } from './mriCompute.js';
 import {
   getAllFarmers,
   getPendingFarmers,
-  getFarmerById,
   getFarmerByFarm,
   getFarmerByUsername,
+  getFarmerDocumentBytes,
   isFarmClaimed,
   isUsernameTaken,
   createFarmer,
@@ -85,7 +85,7 @@ const FRONTEND_BASE_URL = process.env.APP_BASE_URL || 'http://localhost:5173';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function publicFarmer(f) {
-  const { passwordHash, documentPath, ...safe } = f;
+  const { passwordHash, ...safe } = f;
   return safe;
 }
 
@@ -188,14 +188,6 @@ app.post('/api/auth/register', authLimiter, uploadOwnershipDoc.single('document'
     });
   }
 
-  let documentKey;
-  try {
-    documentKey = await gcs.uploadBuffer(req.file.buffer, req.file.originalname, req.file.mimetype);
-  } catch (err) {
-    console.error('document upload failed:', err);
-    return res.status(502).json({ error: 'Failed to upload ownership document. Please try again.' });
-  }
-
   try {
     await createFarmer({
       username,
@@ -204,7 +196,8 @@ app.post('/api/auth/register', authLimiter, uploadOwnershipDoc.single('document'
       email,
       farmName,
       farmId,
-      documentPath: documentKey,
+      documentData: req.file.buffer,
+      documentMimetype: req.file.mimetype,
       documentOriginalName: req.file.originalname,
     });
 
@@ -216,7 +209,6 @@ app.post('/api/auth/register', authLimiter, uploadOwnershipDoc.single('document'
       emailError: emailResult.ok ? null : emailResult.error,
     });
   } catch (err) {
-    gcs.deleteObject(documentKey).catch(() => {});
     console.error('farmer registration failed:', err);
     res.status(502).json({ error: err.message || 'Registration failed' });
   }
@@ -233,17 +225,11 @@ app.get('/api/farmers/pending', requireRole('scientist'), async (req, res) => {
 });
 
 app.get('/api/farmers/:id/document', requireRole('scientist'), async (req, res) => {
-  const farmer = await getFarmerById(req.params.id);
-  if (!farmer?.documentPath) {
-    return res.status(404).json({ error: 'No document on file.' });
-  }
-  try {
-    const url = await gcs.getSignedReadUrl(farmer.documentPath);
-    res.redirect(url);
-  } catch (err) {
-    console.error('document sign failed:', err);
-    res.status(404).json({ error: 'No document on file.' });
-  }
+  const file = await getFarmerDocumentBytes(req.params.id);
+  if (!file) return res.status(404).json({ error: 'No document on file.' });
+  res.set('Content-Type', file.mimetype || 'application/octet-stream');
+  res.set('Content-Disposition', `inline; filename="${file.originalName || 'document'}"`);
+  res.send(file.data);
 });
 
 app.post('/api/farmers/:id/approve', requireRole('scientist'), async (req, res) => {
@@ -354,20 +340,12 @@ app.post('/api/documents', requireAuth, uploadDocument.single('file'), async (re
     return res.status(400).json({ error: 'A file is required (PDF, PNG, JPG, or WEBP).' });
   }
 
-  let gcsKey;
-  try {
-    gcsKey = await gcs.uploadBuffer(req.file.buffer, req.file.originalname, req.file.mimetype);
-  } catch (err) {
-    console.error('document upload failed:', err);
-    return res.status(502).json({ error: 'Failed to upload document. Please try again.' });
-  }
-
   let document;
   try {
     document = await createDocument({
       farmName,
       category,
-      gcsKey,
+      fileData: req.file.buffer,
       originalName: req.file.originalname,
       mimetype: req.file.mimetype,
       uploadedById: req.user.id,
@@ -376,7 +354,6 @@ app.post('/api/documents', requireAuth, uploadDocument.single('file'), async (re
       note,
     });
   } catch (err) {
-    gcs.deleteObject(gcsKey).catch(() => {});
     console.error('document record failed:', err);
     return res.status(502).json({ error: 'Failed to save the document record.' });
   }
@@ -434,13 +411,11 @@ app.get('/api/documents/:id/file', requireAuth, async (req, res) => {
   if (req.user.role === 'farmer' && document.farmName !== req.user.farmName) {
     return res.status(403).json({ error: 'Not authorized for this document.' });
   }
-  try {
-    const url = await gcs.getSignedReadUrl(document.gcsKey);
-    res.redirect(url);
-  } catch (err) {
-    console.error('document sign failed:', err);
-    res.status(404).json({ error: 'File not found.' });
-  }
+  const file = await getDocumentFile(document.id);
+  if (!file) return res.status(404).json({ error: 'File not found.' });
+  res.set('Content-Type', file.mimetype);
+  res.set('Content-Disposition', `inline; filename="${file.originalName}"`);
+  res.send(file.data);
 });
 
 app.post('/api/documents/:id/apply-suggestion', requireRole('scientist'), async (req, res) => {
@@ -503,17 +478,16 @@ app.post('/api/inspections', requireRole('inspector'), uploadEvidence.array('evi
     correctiveActions,
   });
 
-  // Evidence photos go through the same GCS pipeline as /api/documents,
+  // Evidence photos go through the same storage path as /api/documents,
   // tagged with this inspection's id so they show up attached to it.
   const evidenceDocs = [];
   for (const file of req.files || []) {
     try {
-      const gcsKey = await gcs.uploadBuffer(file.buffer, file.originalname, file.mimetype);
       evidenceDocs.push(
         await createDocument({
           farmName,
           category: 'inspection_evidence',
-          gcsKey,
+          fileData: file.buffer,
           originalName: file.originalname,
           mimetype: file.mimetype,
           uploadedById: req.user.id,
@@ -523,7 +497,7 @@ app.post('/api/inspections', requireRole('inspector'), uploadEvidence.array('evi
         })
       );
     } catch (err) {
-      console.error('inspection evidence upload failed:', err);
+      console.error('inspection evidence save failed:', err);
     }
   }
 
