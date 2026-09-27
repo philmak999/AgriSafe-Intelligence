@@ -5,7 +5,11 @@ import { toolDefinitions, toolImplementations } from './tools.js';
 // directly — its API is OpenAI-request-shaped, so the official `openai`
 // package works unmodified by just pointing baseURL at OpenRouter.
 const MODEL = process.env.OPENROUTER_MODEL || 'nvidia/nemotron-3.5-lightning:free';
-const MAX_ITERATIONS = 6;
+// 6 tools are available; a model that calls one tool per turn instead of
+// batching needs up to 6 tool-call iterations plus one more to synthesize
+// the final report. Verified against the current default model: it took 7
+// tool calls (including one redundant repeat) plus a final turn, 8 total.
+const MAX_ITERATIONS = 10;
 
 // Constructed lazily so the server can boot even before OPENROUTER_API_KEY
 // is set — the route handler checks for the key and returns a clear error first.
@@ -34,7 +38,7 @@ Given a farm or facility name, investigate its current biosecurity risk by calli
 - real uploaded evidence documents for the farm (vaccination certificates, lab results) and any AI-suggested score changes awaiting review
 - real inspector-submitted biosecurity checklist inspections for the farm (perimeter control, PPE, pest control, etc.), including any failed items and corrective actions
 
-Call tools as needed (a name may only match some of them — that's fine, note what's missing). Once you have enough information, respond with a plain-text investigation report using exactly this structure, with no markdown formatting (no asterisks, no headers):
+Call tools as needed (a name may only match some of them — that's fine, note what's missing). Call each tool at most once per farm; don't repeat a call you've already made. Once you have enough information, respond with a plain-text investigation report using exactly this structure, with no markdown formatting (no asterisks, no headers):
 
 SUMMARY:
 One or two sentences on the current risk posture.
